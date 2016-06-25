@@ -1,4 +1,6 @@
-﻿parentPID = %1%
+﻿#NoTrayIcon
+
+parentPID = %1%
 32or64 = %2%
 
 WH_GETMESSAGE := 3
