@@ -1,8 +1,11 @@
-﻿class JPGIncDllWindowMover
+﻿/*
+ * Unmodified work Copyright 2016 Joshua Graham
+ */
+class JPGIncDllWindowMover
 {
 	static 32BitPID
 	static 64BitPID
-	
+
 	__new()
 	{
 		debugger("starting the dll window mover")
@@ -11,11 +14,11 @@
 			debugger("the scripts to run the dll's are already running")
 			return this
 		}
-		
+
 		this._startUpDllInjectors()
 		return this
 	}
-	
+
 	_startUpDllInjectors()
 	{
 		myPID := DllCall("GetCurrentProcessId")
@@ -24,19 +27,19 @@
 		{
 			debugger("There was an error running the 32 bit dll injector!`nWindows error code is: " A_LastError)
 		}
-		
+
 		run, AutoHotkeyU64.exe "injection dll/dllCaller.ahk" %myPID% 64, , useerrorlevel, 64BitPID
 		if(ErrorLevel == "ERROR")
 		{
 			debugger("There was an error running the 64 bit dll injector!`nWindows error code is: " A_LastError)
 		}
-		
+
 		debugger( "32 bit pid is " 32BitPID "`n64bit pid is " 64BitPID)
 		this.32BitPID := 32BitPID
 		this.64BitPID := 64BitPID
 		return
 	}
-	
+
 	isAvailable()
 	{
 		debugger("Checking availability")
@@ -58,7 +61,7 @@
 		}
 		return true
 	}
-	
+
 	/*
 	 * might return FAIL if the call fails?
 	 */

@@ -1,4 +1,8 @@
-﻿debugger(message) 
+﻿/*
+ * Original work Copyright 2016 Joshua Graham
+ * Modified work Copyright 2016 Ned Pummeroy
+ */
+debugger(message)
 {
 	;~ ToolTip, % message
 	;~ sleep 100
@@ -25,12 +29,12 @@ turnCapslockOff()
 send(toSend)
 {
 	oldDelay := A_KeyDelay
-	SetKeyDelay, 30
-	
+	SetKeyDelay, 5
+
 	send, % toSend
-	
+
 	SetKeyDelay, % oldDelay
-	return 
+	return
 }
 
 closeMultitaskingViewFrame()
@@ -39,10 +43,10 @@ closeMultitaskingViewFrame()
 	{
 		send("#{tab}")
 	}
-	return 
+	return
 }
 
-	
+
 openMultitaskingViewFrame()
 {
 	IfWinNotActive, ahk_class MultitaskingViewFrame
@@ -56,7 +60,7 @@ openMultitaskingViewFrame()
 
 callFunction(possibleFunction)
 {
-	if(IsFunc(possibleFunction)) 
+	if(IsFunc(possibleFunction))
 	{
 		%possibleFunction%()
 	} else if(IsObject(possibleFunction))
@@ -75,14 +79,25 @@ getDesktopNumberFromHotkey(keyCombo)
 	return number == 0 ? 10 : number
 }
 
-getIndexFromArray(searchFor, array) 
+getIndexFromArray(searchFor, array)
 {
 	loop, % array.MaxIndex()
 	{
-		if(array[A_index] == searchFor) 
+		if(array[A_index] == searchFor)
 		{
 			return A_index
 		}
 	}
 	return -1
+}
+
+/* Refocuses the top window.
+ *
+ * Useful for dealing with nondeterministic start menu
+ * and window focusing behaviour when switching desktops and
+ * using windows-key commands.
+ */
+refocus()
+{
+    send("!+{Escape} !{Escape}")
 }

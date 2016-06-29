@@ -1,40 +1,43 @@
-﻿class VirtualDesktopManagerClass
+﻿/*
+ * Unmodified work Copyright 2016 Joshua Graham
+ */
+class VirtualDesktopManagerClass
 {
 	__new()
-	{	
+	{
 		debugger("creating th vdm")
 		;https://msdn.microsoft.com/en-us/library/windows/desktop/mt186440(v=vs.85).aspx
 		CLSID := "{aa509086-5ca9-4c25-8f95-589d3c07b48a}" ;search VirtualDesktopManager clsid
 		IID := "{a5cd92ff-29be-454c-8d04-d82879fb3f1b}" ;search IID_IVirtualDesktopManager
 		this.iVirtualDesktopManager := ComObjCreate(CLSID, IID)
-		
+
 		this.isWindowOnCurrentVirtualDesktopAddress := NumGet(NumGet(this.iVirtualDesktopManager+0), 3*A_PtrSize)
 		this.getWindowDesktopIdAddress := NumGet(NumGet(this.iVirtualDesktopManager+0), 4*A_PtrSize)
 		this.moveWindowToDesktopAddress := NumGet(NumGet(this.iVirtualDesktopManager+0), 5*A_PtrSize)
-		
+
 		return this
 	}
-	
-	getWindowDesktopId(hWnd, tryAgain := true) 
+
+	getWindowDesktopId(hWnd, tryAgain := true)
 	{
 		desktopId := ""
 		VarSetCapacity(desktopID, 16, 0)
 		;IVirtualDesktopManager::GetWindowDesktopId  method
 		;https://msdn.microsoft.com/en-us/library/windows/desktop/mt186441(v=vs.85).aspx
- 
-		Error := DllCall(this.getWindowDesktopIdAddress, "Ptr", this.iVirtualDesktopManager, "Ptr", hWnd, "Ptr", &desktopID)	
+
+		Error := DllCall(this.getWindowDesktopIdAddress, "Ptr", this.iVirtualDesktopManager, "Ptr", hWnd, "Ptr", &desktopID)
 		if(Error != 0) {
-			if(tryAgain) 
+			if(tryAgain)
 			{
 				return this.getWindowDesktopId(hwnd, false)
 			}
 			msgbox % "error in getWindowDesktopId " Error
 			clipboard := error
 		}
- 
+
 		return &desktopID
 	}
-	
+
 	getDesktopGuid(hwnd)
 	{
 		debugger("getting the guid")
@@ -50,9 +53,9 @@
 			throw Exception("Invalid GUID", -1, Format("<at {1:p}>", pGuid))
 		return StrGet(&sGuid, "UTF-16")
 	}
-	
-	
-	isDesktopCurrentlyActive(hWnd) 
+
+
+	isDesktopCurrentlyActive(hWnd)
 	{
 		;IVirtualDesktopManager::IsWindowOnCurrentVirtualDesktop method
 		;Indicates whether the provided window is on the currently active virtual desktop.
@@ -65,7 +68,7 @@
 
 		return onCurrentDesktop
 	}
-	
+
 	moveWindowToDesktop(hWnd, ByRef desktopId)
 	{
 		Error := DllCall(this.moveWindowToDesktopAddress, "Ptr", this.iVirtualDesktopManager, "Ptr", activeHwnd, "Ptr", &desktopId)
@@ -75,13 +78,13 @@
 		}
 		return this
 	}
-	
-	getCurrentDesktop(hWnd) 
+
+	getCurrentDesktop(hWnd)
 	{
 		desktopId := ""
 		VarSetCapacity(desktopID, 16, 0)
 
-		Error := DllCall(this.getCurrentDesktopAddress, "Ptr", this.iVirtualDesktopManagerInternal, "Ptr", &desktopID)	
+		Error := DllCall(this.getCurrentDesktopAddress, "Ptr", this.iVirtualDesktopManagerInternal, "Ptr", &desktopID)
 		if(Error != 0) {
 			msgbox % "error in getWindowDesktopId " Error
 			clipboard := error

@@ -1,6 +1,10 @@
-/* 
+/*
+ * Unmodified work Copyright 2016 Joshua Graham
+ */
+
+/*
  * this function is used when a hotkey combo is pressed. It directs the program to the appropriate function in the appropriate class
- */ 
+ */
 JPGIncDesktopManagerCallback(desktopManager, functionName, keyCombo)
 {
 	desktopManager[functionName](getDesktopNumberFromHotkey(keyCombo))
@@ -11,7 +15,7 @@ class JPGIncHotkeyManager
 {
 	_notAnAutohotkeyModKeyRegex := "[^#!^+<>*~$]"
 
-	__new() 
+	__new()
 	{
 		return this
 	}
@@ -28,7 +32,7 @@ class JPGIncHotkeyManager
 		}
 		return this
 	}
-	
+
 	setupHotkey(callbackClass, callbackFunctionName, hotkeyKey)
 	{
 		;~ debugger("Setting up callback: " callbackFunctionName " as " hotkeyKey)
@@ -36,10 +40,10 @@ class JPGIncHotkeyManager
 		Hotkey, % hotkeyKey, % callback, On
 		return this
 	}
-	
+
 	/*
 	 * If the modifier key used is only a modifier symbol then we don't need to do anything (https://autohotkey.com/docs/Hotkeys.htm#Symbols)
-	 * but if it contains any other characters then it means that the hotkey is a combination hotkey then we need to add " & " 
+	 * but if it contains any other characters then it means that the hotkey is a combination hotkey then we need to add " & "
 	 */
 	_doesHotkeyRequireCustomHotkeySyntax(key)
 	{
