@@ -2,6 +2,8 @@
  * Copyright 2016 Ned Pummeroy
  */
 
+#UseHook On
+
 #SingleInstance
     globalDesktopManager := new JPGIncDesktopManagerClass()
     globalDesktopManager.setGoToDesktop("#")
@@ -57,8 +59,9 @@ class ViManager
     }
 }
 
-#UseHook On
-    *CapsLock::Esc
+#InputLevel 1
+    *CapsLock::Send {Esc Down}
+    *CapsLock Up::Send {Esc Up}
 
     *LWin::Send {LAlt Down}
     *LWin Up::Send {LAlt Up}
@@ -66,7 +69,7 @@ class ViManager
     *LAlt::Send {LWin Down}
     *LAlt Up::Send {LWin Up}
 
-#UseHook Off
+#InputLevel 0
 
 #If viManager.hasMode(PASSTHROUGH)
     !Tab Up::
@@ -76,19 +79,30 @@ class ViManager
 
     #+j::viManager.setMode(SELECT)
 
+    #j::Send !{Esc}
+    #k::Send !+{Esc}
+
+    ;#CapsLock Up::
     #Escape Up::
         viManager.setMode(NORMAL)
         refocus()
     return
 
 #If viManager.hasMode(NORMAL)
-    Escape::viManager.setMode(PASSTHROUGH)
+    CapsLock::
+    Escape::
+        viManager.setMode(PASSTHROUGH)
+    return
     i::viManager.setMode(INSERT)
 
 #If viManager.hasMode(INSERT)
-    Escape::viManager.setMode(NORMAL)
+    CapsLock::
+    Escape::
+        viManager.setMode(NORMAL)
+    return
 
 #If viManager.hasMode(SELECT)
+    ~CapsLock::
     ~Escape::
     ~Enter::
         viManager.setMode(PASSTHROUGH)
@@ -105,8 +119,7 @@ class ViManager
 ;; Close window
 #w::Send !{F4}
 
-#j::Send !{Esc}
-#k::Send !+{Esc}
+#^l::Send #l
 
 #Space::LWin
 
