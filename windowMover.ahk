@@ -1,80 +1,53 @@
 ﻿/*
- * Unmodified work Copyright 2016 Joshua Graham
+ * Original work Copyright 2016 Joshua Graham
+ * Modified work Copyright 2016 Ned Pummeroy
  */
-class JPGIncWindowMoverClass
+class WindowMover
 {
-    moveActiveWindowToDesktopFunctionName := "moveActiveWindowToDesktop"
-    moveToNextFunctionName := "moveActiveWindowToNextDesktop"
-    moveToPreviousFunctionName := "moveActiveWindowToPreviousDesktop"
+    functions := {MOVE_ACTIVE: ObjBindMethod(this, "moveActiveToDesktop")}
 
     __new()
     {
         this.dllWindowMover := new JPGIncDllWindowMover()
-        this.desktopMapper := new DesktopMapperClass(new VirtualDesktopManagerClass())
+        this.desktopMapper
+            := new DesktopMapperClass(new VirtualDesktopManagerClass())
         this.monitorMapper := new MonitorMapperClass()
-        return this
     }
 
-    doPostMoveWindow()
+    /* Move the active window to the specified desktop via the best
+     * available method.
+     */
+    moveActiveToDesktop(targetDesktop, follow := false)
     {
-        callFunction(this._postMoveWindowFunctionName)
-        return this
-    }
-
-    moveActiveWindowToDesktop(targetDesktop, follow := false)
-    {
-        if(this.dllWindowMover.isAvailable())
-        {
+        if (this.dllWindowMover.isAvailable()) {
             this.dllWindowMover.moveActiveWindowToDesktop(targetDesktop)
-            Send !+{Esc}!{Esc}
-        } else
-        {
-            currentDesktop := this.desktopMapper.getDesktopNumber()
-            if(currentDesktop == targetDesktop)
-            {
-                return this
-            }
-            numberOfTabsNeededToSelectActiveMonitor := this.monitorMapper.getRequiredTabCount(WinActive("A"))
-            numberOfDownsNeededToSelectDesktop := this.getNumberOfDownsNeededToSelectDesktop(targetDesktop, currentDesktop)
-
-            openMultitaskingViewFrame()
-            slowSend("{tab " numberOfTabsNeededToSelectActiveMonitor "}")
-            slowSend("{Appskey}m{Down " numberOfDownsNeededToSelectDesktop "}{Enter}")
-            closeMultitaskingViewFrame()
+        } else {
+            this._moveActiveToDesktopManually(targetDesktop)
         }
 
-        this.doPostMoveWindow()
-
-        return    this
+        Send !+{Esc}!{Esc} ;; Refocus the next remaining window.
+        return this
     }
 
-    moveActiveWindowToNextDesktop(follow := false)
-    {
+    ;; Move the active window to the specified desktop via keypresses.
+    _moveActiveToDesktopManually(targetDesktop) {
         currentDesktop := this.desktopMapper.getDesktopNumber()
-        return this.moveActiveWindowToDesktop(currentDesktop + 1, follow)
-    }
+        if (currentDesktop == targetDesktop) {
+            return
+        }
 
-    moveActiveWindowToPreviousDesktop(follow := false)
-    {
-        currentDesktop := this.desktopMapper.getDesktopNumber()
-        if(currentDesktop == 1)
-        {
-            return this
-        }
-        return this.moveActiveWindowToDesktop(currentDesktop - 1, follow)
-    }
+        openMultitaskingViewFrame()
 
-    getNumberOfDownsNeededToSelectDesktop(targetDesktop, currentDesktop)
-    {
-        ; This part figures out how many times we need to push down within the context menu to get the desktop we want.
-        if (targetDesktop > currentDesktop)
-        {
-            targetDesktop -= 2
-        }
-        else
-        {
-            targetdesktop--
-        }
-        return targetDesktop
+        ;; Press tab to pick the active monitor.
+        nTabs := this.monitorMapper.getRequiredTabCount(WinActive("A"))
+        slowSend("{Tab " nTabs "}")
+
+        ;; Open the context menu and press down to pick the desktop.
+        nDowns := currentDesktop - 1
+        ;; The current desktop doesn't appear in the menu.
+        if (targetDesktop > currentDesktop) nDowns -= 1
+        slowSend("{Appskey}m{Down " nDown "}{Enter}")
+
+        closeMultitaskingViewFrame()
     }
 }

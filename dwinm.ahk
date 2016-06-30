@@ -3,49 +3,57 @@
  */
 
 #UseHook On
+#NoEnv
+#Warn
 
 #SingleInstance
-    VI_TOOLTIP := 1
-    VI_TOOLTIP_X := 80
-    DESKTOP_TOOLTIP := 2
-
-    NUM_DESKTOPS := 10
-
-    globalDesktopManager := new JPGIncDesktopManagerClass(NUM_DESKTOPS, DESKTOP_TOOLTIP)
-    globalDesktopManager.setGoToDesktop("#")
-        .setMoveWindowToDesktop("#+")
-        .setGoToRecentDesktop("#Tab")
-        .setResyncDesktops("#Enter")
-
-    viManager := new ViManager(VI_TOOLTIP, VI_TOOLTIP_X)
-
     PASSTHROUGH := ViManager.PASSTHROUGH
     NORMAL := ViManager.NORMAL
     SELECT := ViManager.SELECT
     INSERT := ViManager.INSERT
 
     CoordMode ToolTip, Screen
+
+    main := new DWM()
+    vim := new ViManager()
 return
 
-class ViManager
-{
+class DWM {
+    static DESKTOP_TOOLTIP := 1
+    static VI_TOOLTIP := 2
+
+    static DESKTOP_TOOLTIP_X := 64
+    static VI_TOOLTIP_X := 80
+
+    static NUM_DESKTOPS := 10
+
+    desktopChanger := new DesktopChanger(DWM.NUM_DESKTOPS
+            , {id: DWM.DESKTOP_TOOLTIP, x: DWM.DESKTOP_TOOLTIP_X})
+    windowMover := new WindowMover()
+    hotkeyManager := new HotkeyManager(this.desktopChanger, this.windowMover)
+
+    __new() {
+        this.hotkeyManager
+            .goToDesktop("#")
+            .moveWindowToDesktop("#+")
+            .goToOtherDesktop("#Tab")
+            .resyncDesktops("#Enter")
+    }
+}
+
+class ViManager {
     static PASSTHROUGH := "PASSTHROUGH"
     static NORMAL := "NORMAL"
     static SELECT := "SELECT"
     static INSERT := "INSERT"
 
     mode := ViManager.PASSTHROUGH
-
-    __new(toolTipNumber, tooltipX) {
-        this.toolTipNumber := toolTipNumber
-        this.clear := ObjBindMethod(this, "_clearTooltip")
-        this.tooltipX := tooltipX
-    }
+    clear := ObjBindMethod(this, "_clearTooltip")
 
     setMode(mode) {
         this.mode := mode
 
-        ToolTip %mode% mode, %x%, 0, this.toolTipNumber
+        ToolTip %mode% mode, DWM.VI_TOOLTIP_X, 0, DWM.VI_TOOLTIP
 
         if (mode == ViManager.PASSTHROUGH) {
             clear := this.clear
@@ -82,35 +90,35 @@ class ViManager
 
 #InputLevel 0
 
-#If viManager.hasMode(PASSTHROUGH)
+#If vim.hasMode(PASSTHROUGH)
     !Tab Up::
         Send ^!{Tab}^+!{Tab}
-        viManager.setMode(SELECT)
+        vim.setMode(SELECT)
     return
 
-    #+j::viManager.setMode(SELECT)
+    #+j::vim.setMode(SELECT)
 
     #j::Send !{Esc}
     #k::Send !+{Esc}
 
-    #Escape::viManager.setMode(NORMAL)
+    #Escape::vim.setMode(NORMAL)
 
-#If viManager.hasMode(NORMAL)
-    *Escape::viManager.setMode(PASSTHROUGH)
-    i::viManager.setMode(INSERT)
+#If vim.hasMode(NORMAL)
+    *Escape::vim.setMode(PASSTHROUGH)
+    i::vim.setMode(INSERT)
 
-#If viManager.hasMode(INSERT)
-    Escape::viManager.setMode(NORMAL)
+#If vim.hasMode(INSERT)
+    Escape::vim.setMode(NORMAL)
 
-#If viManager.hasMode(SELECT)
+#If vim.hasMode(SELECT)
     ~*Escape::
     ~*Enter::
     ~^c::
     ~^x::
-        viManager.setMode(PASSTHROUGH)
+        vim.setMode(PASSTHROUGH)
     return
 
-#If viManager.hasMode(NORMAL, SELECT)
+#If vim.hasMode(NORMAL, SELECT)
     h::Left
     j::Down
     k::Up
@@ -130,7 +138,6 @@ class ViManager
 #Enter::Return ; don't like narrator
 
 #Include commonFunctions.ahk
-#Include desktopManager.ahk
 #Include desktopChanger.ahk
 #Include windowMover.ahk
 #Include desktopMapper.ahk

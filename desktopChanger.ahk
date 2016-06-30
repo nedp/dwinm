@@ -2,23 +2,23 @@
  * Original work Copyright 2016 Joshua Graham
  * Modified work Copyright 2016 Ned Pummeroy
  */
-class JPGIncDesktopChangerClass {
+
+class DesktopChanger {
     static MAX_RETRIES := 3 ;; Maximum number of attempts to resync.
     static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
 
-    goToDesktopCallbackFunctionName := "goToDesktop"
-    nextDesktopFunctionName := "goToNextDesktop"
-    recentDesktopFunctionName := "goToRecentDesktop"
-    resyncDesktopsFunctionName := "resyncDesktops"
-    previousDesktopFunctionName := "goToPreviousDesktop"
+    functions := { GO_TO: "goToDesktop"
+                 , OTHER: "goToOtherDesktop"
+                 , RESYNC: "resyncDesktops" }
 
-    __new(nDesktops, tooltipNumber) {
-        this.desktopMapper := new DesktopMapperClass(new VirtualDesktopManagerClass())
-        this.recentDesktop := 1
-        this.currentDesktop := this.desktopMapper.getDesktopNumber()
+    otherDesktop := 1
+
+    desktopMapper := new DesktopMapperClass(new VirtualDesktopManagerClass())
+    currentDesktop := this.desktopMapper.getDesktopNumber()
+
+    __new(nDesktops, tooltipParams) {
         this.nDesktops := nDesktops
-        this.tooltipNumber := tooltipNumber
-
+        this.tooltip := tooltipParams
         this.resyncDesktops()
     }
 
@@ -49,21 +49,20 @@ class JPGIncDesktopChangerClass {
             this.recentDesktop := this.currentDesktop
             this.currentDesktop := desktop
         }
-        ToolTip %desktop%, 0, 0, this.tooltipNumber
+        this._displayTooltip(desktop)
     }
 
-    /*
-     *    swap to the given virtual desktop number
+    /* Swap to the given virtual desktop number.
      */
-    goToDesktop(newDesktopNumber) {
-        if (this.currentDesktop != newDesktopNumber) {
-            this._changeDesktop(newDesktopNumber)
+    goToDesktop(newDesktop) {
+        if (this.currentDesktop != newDesktop) {
+            this._changeDesktop(newDesktop)
         }
         this.doPostGoToDesktop()
     }
 
-    _changeDesktop(newDesktopNumber) {
-        direction := newDesktopNumber - this.currentDesktop
+    _changeDesktop(newDesktop) {
+        direction := newDesktop - this.currentDesktop
         distance := Abs(direction)
         if (direction > 0) {
             quickSend("^#{Right " distance "}")
@@ -72,9 +71,9 @@ class JPGIncDesktopChangerClass {
         }
 
         this.recentDesktop := this.currentDesktop
-        this.currentDesktop := newDesktopNumber
+        this.currentDesktop := newDesktop
 
-        ToolTip %newDesktopNumber%, 0, 0, this.tooltipNumber
+        this._displayTooltip(newDesktop)
     }
 
     ;; Ensure that the number of desktops matches `this.nDesktops`.
@@ -102,7 +101,7 @@ class JPGIncDesktopChangerClass {
             ;; Remove desktops if we have too many.
             if (nDesktopsToMake < 0) {
                 n := -nDesktopsToMake
-                slowSend("#^{F4 " DesktopsToMake "}")
+                slowSend("#^{F4 " nDesktopsToMake "}")
             }
         }
     }
@@ -127,5 +126,9 @@ class JPGIncDesktopChangerClass {
             }
         }
         return actual
+    }
+
+    _displayTooltip(message) {
+        ToolTip %message%, (this.tooltip.x), 0, (this.tooltip.id)
     }
 }
