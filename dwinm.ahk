@@ -5,18 +5,26 @@
 #UseHook On
 
 #SingleInstance
-    globalDesktopManager := new JPGIncDesktopManagerClass(10)
+    VI_TOOLTIP := 1
+    VI_TOOLTIP_X := 80
+    DESKTOP_TOOLTIP := 2
+
+    NUM_DESKTOPS := 10
+
+    globalDesktopManager := new JPGIncDesktopManagerClass(NUM_DESKTOPS, DESKTOP_TOOLTIP)
     globalDesktopManager.setGoToDesktop("#")
         .setMoveWindowToDesktop("#+")
         .setGoToRecentDesktop("#Tab")
         .setResyncDesktops("#Enter")
 
-    viManager := new ViManager(1)
+    viManager := new ViManager(VI_TOOLTIP, VI_TOOLTIP_X)
 
     PASSTHROUGH := ViManager.PASSTHROUGH
     NORMAL := ViManager.NORMAL
     SELECT := ViManager.SELECT
     INSERT := ViManager.INSERT
+
+    CoordMode ToolTip, Screen
 return
 
 class ViManager
@@ -28,15 +36,16 @@ class ViManager
 
     mode := ViManager.PASSTHROUGH
 
-    __new(toolTipNumber) {
+    __new(toolTipNumber, tooltipX) {
         this.toolTipNumber := toolTipNumber
         this.clear := ObjBindMethod(this, "_clearTooltip")
+        this.tooltipX := tooltipX
     }
 
     setMode(mode) {
         this.mode := mode
 
-        ToolTip %mode% mode, 0, 0, this.toolTipNumber
+        ToolTip %mode% mode, %x%, 0, this.toolTipNumber
 
         if (mode == ViManager.PASSTHROUGH) {
             clear := this.clear
@@ -46,15 +55,17 @@ class ViManager
 
     hasMode(modes*) {
         thismode := this.mode
-        for _, mode in modes
-            if (this.mode == mode)
+        for _, mode in modes {
+            if (this.mode == mode) {
                 return True
+            }
+        }
         return False
     }
 
     _clearTooltip() {
         if (this.mode == ViManager.PASSTHROUGH) {
-            ToolTip, , 0, 0, this.toolTipNumber
+            ToolTip, , , , this.toolTipNumber
         }
     }
 }
@@ -82,10 +93,7 @@ class ViManager
     #j::Send !{Esc}
     #k::Send !+{Esc}
 
-    #Escape::
-        viManager.setMode(NORMAL)
-        refocus()
-    return
+    #Escape::viManager.setMode(NORMAL)
 
 #If viManager.hasMode(NORMAL)
     *Escape::viManager.setMode(PASSTHROUGH)
@@ -115,16 +123,18 @@ class ViManager
 
 #^l::Send #l
 
+#^q::Reload
+
 #Space::LWin
 
 #Enter::Return ; don't like narrator
 
+#Include commonFunctions.ahk
 #Include desktopManager.ahk
 #Include desktopChanger.ahk
 #Include windowMover.ahk
 #Include desktopMapper.ahk
 #include virtualDesktopManager.ahk
 #Include monitorMapper.ahk
-#Include commonFunctions.ahk
 #Include hotkeyManager.ahk
 #Include dllWindowMover.ahk

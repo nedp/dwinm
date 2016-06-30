@@ -3,52 +3,53 @@
  * Modified work Copyright 2016 Ned Pummeroy
  */
 class JPGIncDesktopChangerClass {
+    static MAX_RETRIES := 3 ;; Maximum number of attempts to resync.
+    static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
+
     goToDesktopCallbackFunctionName := "goToDesktop"
     nextDesktopFunctionName := "goToNextDesktop"
     recentDesktopFunctionName := "goToRecentDesktop"
     resyncDesktopsFunctionName := "resyncDesktops"
     previousDesktopFunctionName := "goToPreviousDesktop"
-    _postGoToDesktopFunctionName := ""
 
-    __new(nDesktops) {
+    __new(nDesktops, tooltipNumber) {
         this.desktopMapper := new DesktopMapperClass(new VirtualDesktopManagerClass())
-        this.previousDesktop := 1
+        this.recentDesktop := 1
         this.currentDesktop := this.desktopMapper.getDesktopNumber()
         this.nDesktops := nDesktops
+        this.tooltipNumber := tooltipNumber
 
         this.resyncDesktops()
-        return this
     }
 
     goToNextDesktop(keyCombo := "") {
         currentDesktop := this.desktopMapper.getDesktopNumber()
         this.recentDesktop := currentDesktop
-        send("^#{right}")
-        return this.doPostGoToDesktop()
+        Send ^#{right}
     }
 
     goToPreviousDesktop(keyCombo := "") {
         currentDesktop := this.desktopMapper.getDesktopNumber()
         this.recentDesktop := currentDesktop
-        send("^#{left}")
-        return this.doPostGoToDesktop()
+        Send ^#{left}
     }
 
     goToRecentDesktop(keyCombo := "") {
-        return this.goToDesktop(this.recentDesktop)
+        this.goToDesktop(this.recentDesktop)
     }
 
     resyncDesktops(keyCombo := "") {
-        currentDesktop := this.currentDesktop
-        recentDesktop := this.recentDesktop
+        ToolTip Synchronising..., 0, 0, this.tooltipNumber
 
         this._resetDesktopCount()
 
-        send("^#{Left " this.nDesktops "}")
-        send("^#{Right " (recentDesktop - 1) "}")
-        this.currentDesktop := recentDesktop
+        desktop := this._resetCurrentDesktop()
 
-        return this._changeDesktop(currentDesktop)
+        if (this.currentDesktop != desktop) {
+            this.recentDesktop := this.currentDesktop
+            this.currentDesktop := desktop
+        }
+        ToolTip %desktop%, 0, 0, this.tooltipNumber
     }
 
     /*
@@ -59,43 +60,72 @@ class JPGIncDesktopChangerClass {
             this._changeDesktop(newDesktopNumber)
         }
         this.doPostGoToDesktop()
-        return this
     }
 
     _changeDesktop(newDesktopNumber) {
         direction := newDesktopNumber - this.currentDesktop
         distance := Abs(direction)
-        if(direction > 0) {
-            send("^#{right " distance "}")
+        if (direction > 0) {
+            quickSend("^#{Right " distance "}")
         } else {
-            send("^#{left " distance "}")
+            quickSend("^#{Left " distance "}")
         }
+
         this.recentDesktop := this.currentDesktop
         this.currentDesktop := newDesktopNumber
 
-        return this
+        ToolTip %newDesktopNumber%, 0, 0, this.tooltipNumber
     }
 
     ;; Ensure that the number of desktops matches `this.nDesktops`.
     _resetDesktopCount() {
-        nActualDesktops := this.desktopMapper.getNumberOfDesktops()
-        nDesktopsToMake := this.nDesktops - nActualDesktops
+        loop % this.MAX_RETRIES {
+            Sleep this.RESYNC_DELAY
 
-        ;; Create desktops if we don't have enough.
-        if (nDesktopsToMake > 0) {
-            send("#^{d " nDesktopsToMake "}")
-        }
+            nActualDesktops := this.desktopMapper.getNumberOfDesktops()
+            nDesktopsToMake := this.nDesktops - nActualDesktops
 
-        ;; Remove desktops if we have too many.
-        if (nDesktopsToMake < 0) {
-            send("#^{Right " nActualDesktops "}")
-            send("#^{F4 " -nDesktopsToMake "}")
+            if (nDesktopsToMake == 0) {
+                return
+            }
+
+            ;; Go to the last desktop so we add/remove at the right place.
+            slowSend("#^{Right " nActualDesktops "}")
+
+            Sleep this.RESYNC_DELAY
+
+            ;; Create desktops if we don't have enough.
+            if (nDesktopsToMake > 0) {
+                slowSend("#^{d " nDesktopsToMake "}")
+            }
+
+            ;; Remove desktops if we have too many.
+            if (nDesktopsToMake < 0) {
+                n := -nDesktopsToMake
+                slowSend("#^{F4 " DesktopsToMake "}")
+            }
         }
     }
 
-    doPostGoToDesktop() {
-        refocus()
-        callFunction(this.postGoToDesktopFunctionName)
-        return this
+    _resetCurrentDesktop() {
+        loop % this.MAX_RETRIES {
+            Sleep this.RESYNC_DELAY
+
+            nTotal := this.nDesktops
+            slowSend("^#{Left " nTotal "}")
+
+            Sleep this.RESYNC_DELAY
+
+            nMove := this.currentDesktop - 1
+            slowSend("^#{Right " nMove "}")
+
+            Sleep this.RESYNC_DELAY
+
+            actual := this.desktopMapper.getDesktopNumber()
+            if (actual == this.currentDesktop) {
+                return actual
+            }
+        }
+        return actual
     }
 }

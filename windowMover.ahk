@@ -6,7 +6,6 @@ class JPGIncWindowMoverClass
     moveActiveWindowToDesktopFunctionName := "moveActiveWindowToDesktop"
     moveToNextFunctionName := "moveActiveWindowToNextDesktop"
     moveToPreviousFunctionName := "moveActiveWindowToPreviousDesktop"
-    _postMoveWindowFunctionName := ""
 
     __new()
     {
@@ -27,6 +26,7 @@ class JPGIncWindowMoverClass
         if(this.dllWindowMover.isAvailable())
         {
             this.dllWindowMover.moveActiveWindowToDesktop(targetDesktop)
+            Send !+{Esc}!{Esc}
         } else
         {
             currentDesktop := this.desktopMapper.getDesktopNumber()
@@ -38,8 +38,8 @@ class JPGIncWindowMoverClass
             numberOfDownsNeededToSelectDesktop := this.getNumberOfDownsNeededToSelectDesktop(targetDesktop, currentDesktop)
 
             openMultitaskingViewFrame()
-            send("{tab " numberOfTabsNeededToSelectActiveMonitor "}")
-            send("{Appskey}m{Down " numberOfDownsNeededToSelectDesktop "}{Enter}")
+            slowSend("{tab " numberOfTabsNeededToSelectActiveMonitor "}")
+            slowSend("{Appskey}m{Down " numberOfDownsNeededToSelectDesktop "}{Enter}")
             closeMultitaskingViewFrame()
         }
 
