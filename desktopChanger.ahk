@@ -6,15 +6,17 @@ class JPGIncDesktopChangerClass {
     goToDesktopCallbackFunctionName := "goToDesktop"
     nextDesktopFunctionName := "goToNextDesktop"
     recentDesktopFunctionName := "goToRecentDesktop"
-    resyncDesktopFunctionName := "resyncDesktop"
+    resyncDesktopsFunctionName := "resyncDesktops"
     previousDesktopFunctionName := "goToPreviousDesktop"
     _postGoToDesktopFunctionName := ""
 
-    __new() {
+    __new(nDesktops) {
         this.desktopMapper := new DesktopMapperClass(new VirtualDesktopManagerClass())
-        this.goToDesktop(1)
+        this.previousDesktop := 1
         this.currentDesktop := this.desktopMapper.getDesktopNumber()
-        this.recentDesktop := 2
+        this.nDesktops := nDesktops
+
+        this.resyncDesktops()
         return this
     }
 
@@ -32,16 +34,20 @@ class JPGIncDesktopChangerClass {
         return this.doPostGoToDesktop()
     }
 
-    goToRecentDesktop(keyCombo := "")
-    {
+    goToRecentDesktop(keyCombo := "") {
         return this.goToDesktop(this.recentDesktop)
     }
 
-    resyncDesktop(keyCombo := "") {
+    resyncDesktops(keyCombo := "") {
         currentDesktop := this.currentDesktop
         recentDesktop := this.recentDesktop
-        send("^#{Left 10}")
+
+        this._resetDesktopCount()
+
+        send("^#{Left " this.nDesktops "}")
+        send("^#{Right " (recentDesktop - 1) "}")
         this.currentDesktop := recentDesktop
+
         return this._changeDesktop(currentDesktop)
     }
 
@@ -57,8 +63,6 @@ class JPGIncDesktopChangerClass {
     }
 
     _changeDesktop(newDesktopNumber) {
-        this._makeDesktopsIfRequired(newDesktopNumber)
-
         direction := newDesktopNumber - this.currentDesktop
         distance := Abs(direction)
         if(direction > 0) {
@@ -72,13 +76,21 @@ class JPGIncDesktopChangerClass {
         return this
     }
 
-    _makeDesktopsIfRequired(minimumNumberOfDesktops) {
-        currentNumberOfDesktops := this.desktopMapper.getNumberOfDesktops()
-        loop, % minimumNumberOfDesktops - currentNumberOfDesktops {
-            send("#^d")
+    ;; Ensure that the number of desktops matches `this.nDesktops`.
+    _resetDesktopCount() {
+        nActualDesktops := this.desktopMapper.getNumberOfDesktops()
+        nDesktopsToMake := this.nDesktops - nActualDesktops
+
+        ;; Create desktops if we don't have enough.
+        if (nDesktopsToMake > 0) {
+            send("#^{d " nDesktopsToMake "}")
         }
 
-        return this
+        ;; Remove desktops if we have too many.
+        if (nDesktopsToMake < 0) {
+            send("#^{Right " nActualDesktops "}")
+            send("#^{F4 " -nDesktopsToMake "}")
+        }
     }
 
     doPostGoToDesktop() {

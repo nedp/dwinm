@@ -5,11 +5,11 @@
 #UseHook On
 
 #SingleInstance
-    globalDesktopManager := new JPGIncDesktopManagerClass()
+    globalDesktopManager := new JPGIncDesktopManagerClass(10)
     globalDesktopManager.setGoToDesktop("#")
         .setMoveWindowToDesktop("#+")
         .setGoToRecentDesktop("#Tab")
-        .setResyncDesktop("#Enter")
+        .setResyncDesktops("#Enter")
 
     viManager := new ViManager(1)
 

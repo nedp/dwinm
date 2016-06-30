@@ -4,9 +4,9 @@
  */
 class JPGIncDesktopManagerClass
 {
-	__new()
+	__new(nDesktops)
 	{
-		this._desktopChanger := new JPGIncDesktopChangerClass()
+		this._desktopChanger := new JPGIncDesktopChangerClass(nDesktops)
 		this._windowMover := new JPGIncWindowMoverClass()
 		this.hotkeyManager := new JPGIncHotkeyManager()
 
@@ -46,9 +46,9 @@ class JPGIncDesktopManagerClass
 		return this
 	}
 
-	setResyncDesktop(hotkeyKey)
+	setResyncDesktops(hotkeyKey)
 	{
-		this.hotkeyManager.setupHotkey(this._desktopChanger, this._desktopChanger.resyncDesktopFunctionName, hotkeyKey)
+		this.hotkeyManager.setupHotkey(this._desktopChanger, this._desktopChanger.resyncDesktopsFunctionName, hotkeyKey)
 		return this
 	}
 
