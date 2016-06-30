@@ -15,7 +15,7 @@ class HotkeyManager {
     moveWindowToDesktop(prefix) {
         object := this._windowMover
         method := object.functions.MOVE_ACTIVE
-        this._setupNumberedHotkey(prefix, object, method)
+        this._setUpNumberedHotkey(prefix, object, method)
         return this
     }
 
@@ -27,7 +27,7 @@ class HotkeyManager {
     goToDesktop(prefix) {
         object := this._desktopChanger
         method := object.functions.GO_TO
-        this._setupNumberedHotkey(prefix, object, method)
+        this._setUpNumberedHotkey(prefix, object, method)
         return this
     }
 
@@ -59,7 +59,7 @@ class HotkeyManager {
      * There will be one argument matching <N>, except when N=0;
      * the argument for N=0 will be 10.
      */
-    _setupNumberedHotkey(prefix, object, methodName) {
+    _setUpNumberedHotkey(prefix, object, methodName) {
         static modKeyRegex := "[#!^+<>*~$]"
         if (!RegExMatch(modKeyRegex, prefix)) {
             prefix .= " & "

@@ -4,7 +4,7 @@
  */
 class WindowMover
 {
-    functions := {MOVE_ACTIVE: ObjBindMethod(this, "moveActiveToDesktop")}
+    functions := {MOVE_ACTIVE: "moveActiveToDesktop"}
 
     __new()
     {
@@ -17,15 +17,14 @@ class WindowMover
     /* Move the active window to the specified desktop via the best
      * available method.
      */
-    moveActiveToDesktop(targetDesktop, follow := false)
-    {
+    moveActiveToDesktop(targetDesktop, follow := false) {
         if (this.dllWindowMover.isAvailable()) {
             this.dllWindowMover.moveActiveWindowToDesktop(targetDesktop)
         } else {
             this._moveActiveToDesktopManually(targetDesktop)
         }
 
-        Send !+{Esc}!{Esc} ;; Refocus the next remaining window.
+        slowSend("!+{Esc}!{Esc}") ;; Refocus the next remaining window.
         return this
     }
 
