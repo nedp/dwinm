@@ -82,27 +82,19 @@ class ViManager
     #j::Send !{Esc}
     #k::Send !+{Esc}
 
-    ;#CapsLock Up::
     #Escape Up::
         viManager.setMode(NORMAL)
         refocus()
     return
 
 #If viManager.hasMode(NORMAL)
-    CapsLock::
-    Escape::
-        viManager.setMode(PASSTHROUGH)
-    return
+    *Escape::viManager.setMode(PASSTHROUGH)
     i::viManager.setMode(INSERT)
 
 #If viManager.hasMode(INSERT)
-    CapsLock::
-    Escape::
-        viManager.setMode(NORMAL)
-    return
+    Escape::viManager.setMode(NORMAL)
 
 #If viManager.hasMode(SELECT)
-    ~CapsLock::
     ~Escape::
     ~Enter::
         viManager.setMode(PASSTHROUGH)
