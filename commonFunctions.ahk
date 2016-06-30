@@ -9,12 +9,13 @@ debugger(message) {
     return
 }
 
-/* Send keystrokes with no delay to mitigate flickering
+/* Send keystrokes with minimal delay to mitigate flickering
  * and improve responsiveness.
  */
 quickSend(toSend) {
+    static quickDelay := 10
     oldDelay := A_KeyDelay
-    SetKeyDelay 0
+    SetKeyDelay % quickDelay
 
     Send % toSend
 
@@ -25,9 +26,9 @@ quickSend(toSend) {
 /* Send keystrokes with a delay to improve reliability.
  */
 slowSend(toSend) {
-    static SEND_DELAY := 60
+    static slowDelay := 60
     oldDelay := A_KeyDelay
-    SetKeyDelay % SEND_DELAY
+    SetKeyDelay % slowDelay
 
     Send % toSend
 
