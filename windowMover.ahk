@@ -24,7 +24,7 @@ class WindowMover
             this._moveActiveToDesktopManually(targetDesktop)
         }
 
-        slowSend("!+{Esc}!{Esc}") ;; Refocus the next remaining window.
+        refocus()
         return this
     }
 

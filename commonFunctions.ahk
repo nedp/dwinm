@@ -74,3 +74,9 @@ getIndexFromArray(searchFor, array) {
     }
     return -1
 }
+
+/* Refocuses on the topmost window in the current desktop.
+ */
+refocus() {
+    slowSend("!+{Esc}!{Esc}") ;; quickSend is dodgy with focusing.
+}

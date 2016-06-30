@@ -7,91 +7,89 @@ class DesktopChanger {
     static MAX_RETRIES := 3 ;; Maximum number of attempts to resync.
     static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
 
-    functions := { GO_TO: "goToDesktop"
-                 , OTHER: "goToOtherDesktop"
+    functions := { PICK: "pickDesktop"
+                 , SWAP: "swapDesktops"
                  , RESYNC: "resyncDesktops" }
 
     otherDesktop := 1
 
     desktopMapper := new DesktopMapperClass(new VirtualDesktopManagerClass())
-    currentDesktop := this.desktopMapper.getDesktopNumber()
+    desktop := this.desktopMapper.getDesktopNumber()
 
     __new(nDesktops, tooltipParams) {
-        this.nDesktops := nDesktops
+        this.nDesktopsTarget := nDesktops
         this.tooltip := tooltipParams
         this.resyncDesktops()
     }
 
-    goToNextDesktop(keyCombo := "") {
-        currentDesktop := this.desktopMapper.getDesktopNumber()
-        this.recentDesktop := currentDesktop
-        Send ^#{right}
-    }
-
-    goToPreviousDesktop(keyCombo := "") {
-        currentDesktop := this.desktopMapper.getDesktopNumber()
-        this.recentDesktop := currentDesktop
-        Send ^#{left}
-    }
-
-    goToRecentDesktop(keyCombo := "") {
-        this.goToDesktop(this.recentDesktop)
+    swapDesktops(keyCombo := "") {
+        otherDesktop := this.otherDesktop
+        this.otherDesktop := this.desktop
+        this.pickDesktop(otherDesktop)
     }
 
     resyncDesktops(keyCombo := "") {
         ToolTip Synchronising..., 0, 0, this.tooltipNumber
 
-        this._resetDesktopCount()
-
-        desktop := this._resetCurrentDesktop()
-
-        if (this.currentDesktop != desktop) {
-            this.recentDesktop := this.currentDesktop
-            this.currentDesktop := desktop
+        this.nDesktops := this._resetDesktopCount()
+        if (this.nDesktops < this.desktop) {
+            this.desktop := this.nDesktops
         }
-        this._displayTooltip(desktop)
+        this.desktop := this._resetCurrentDesktop()
+
+        refocus()
+        this.displayDesktop()
     }
 
     /* Swap to the given virtual desktop number.
      */
-    goToDesktop(newDesktop) {
-        if (this.currentDesktop != newDesktop) {
+    pickDesktop(newDesktop) {
+        if (this.desktop != newDesktop) {
             this._changeDesktop(newDesktop)
         }
-        this.doPostGoToDesktop()
     }
 
     _changeDesktop(newDesktop) {
-        direction := newDesktop - this.currentDesktop
+        direction := newDesktop - this.desktop
         distance := Abs(direction)
         if (direction > 0) {
             quickSend("^#{Right " distance "}")
-        } else {
+        } else if (direction < 0) {
             quickSend("^#{Left " distance "}")
         }
 
-        this.recentDesktop := this.currentDesktop
-        this.currentDesktop := newDesktop
+        this.desktop := newDesktop
 
-        this._displayTooltip(newDesktop)
+        refocus()
+        this.displayDesktop()
+    }
+
+    displayDesktop() {
+        message := this.desktop
+        if (this.nDesktops != this.nDesktopsTarget) {
+            message .= "/" . this.nDesktops
+        }
+        this._displayTooltip(message)
     }
 
     ;; Ensure that the number of desktops matches `this.nDesktops`.
     _resetDesktopCount() {
-        loop % this.MAX_RETRIES {
-            Sleep this.RESYNC_DELAY
+        loop % DesktopChanger.MAX_RETRIES {
+            Sleep DesktopChanger.RESYNC_DELAY
 
             nActualDesktops := this.desktopMapper.getNumberOfDesktops()
-            nDesktopsToMake := this.nDesktops - nActualDesktops
+            nDesktopsToMake := this.nDesktopsTarget - nActualDesktops
 
             if (nDesktopsToMake == 0) {
-                return
+                return nActualDesktops
             }
+            this._displayTooltip("Wrong desktop count: " . nActualDesktops
+                . ". Trying to fix...")
 
             ;; Go to the last desktop so we add/remove at the right place.
             slowSend("#^{Right " nActualDesktops "}")
 
-            Sleep this.RESYNC_DELAY
+            Sleep DesktopChanger.RESYNC_DELAY
 
             ;; Create desktops if we don't have enough.
             if (nDesktopsToMake > 0) {
@@ -101,31 +99,32 @@ class DesktopChanger {
             ;; Remove desktops if we have too many.
             if (nDesktopsToMake < 0) {
                 n := -nDesktopsToMake
-                slowSend("#^{F4 " nDesktopsToMake "}")
+                slowSend("#^{F4 " n "}")
             }
         }
+        return nActualDesktops
     }
 
     _resetCurrentDesktop() {
-        loop % this.MAX_RETRIES {
-            Sleep this.RESYNC_DELAY
+        loop % DesktopChanger.MAX_RETRIES {
+            Sleep DesktopChanger.RESYNC_DELAY
 
             nTotal := this.nDesktops
             slowSend("^#{Left " nTotal "}")
 
-            Sleep this.RESYNC_DELAY
+            Sleep DesktopChanger.RESYNC_DELAY
 
-            nMove := this.currentDesktop - 1
+            nMove := this.desktop - 1
             slowSend("^#{Right " nMove "}")
 
-            Sleep this.RESYNC_DELAY
+            Sleep DesktopChanger.RESYNC_DELAY
 
-            actual := this.desktopMapper.getDesktopNumber()
-            if (actual == this.currentDesktop) {
-                return actual
+            actualDesktop := this.desktopMapper.getDesktopNumber()
+            if (actualDesktop == this.desktop) {
+                return actualDesktop
             }
         }
-        return actual
+        return actualDesktop
     }
 
     _displayTooltip(message) {

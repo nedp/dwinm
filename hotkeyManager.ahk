@@ -26,7 +26,7 @@ class HotkeyManager {
      */
     goToDesktop(prefix) {
         object := this._desktopChanger
-        method := object.functions.GO_TO
+        method := object.functions.PICK
         this._setUpNumberedHotkey(prefix, object, method)
         return this
     }
@@ -35,7 +35,7 @@ class HotkeyManager {
      */
     goToOtherDesktop(hotkeyKey) {
         object := this._desktopChanger
-        method := object.functions.OTHER
+        method := object.functions.SWAP
         callback := ObjBindMethod(object, method)
         Hotkey %hotkeyKey%, %callback%, On
         return this
