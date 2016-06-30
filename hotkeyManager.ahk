@@ -2,9 +2,10 @@
  * Copyright 2016 Ned Pummeroy
  */
 class HotkeyManager {
-    __new(desktopChanger, windowMover) {
-        this._desktopChanger := desktopChanger
-        this._windowMover := windowMover
+    __new(desktopChanger, windowMover, nDesktops) {
+        this.nDesktops := nDesktops
+        this.desktopChanger := desktopChanger
+        this.windowMover := windowMover
     }
 
     /* Set up hotkeys to move the active window to target desktops.
@@ -13,7 +14,7 @@ class HotkeyManager {
      * a number key.
      */
     moveWindowToDesktop(prefix) {
-        object := this._windowMover
+        object := this.windowMover
         method := object.functions.MOVE_ACTIVE
         this._setUpNumberedHotkey(prefix, object, method)
         return this
@@ -25,7 +26,7 @@ class HotkeyManager {
      * a number key.
      */
     goToDesktop(prefix) {
-        object := this._desktopChanger
+        object := this.desktopChanger
         method := object.functions.PICK
         this._setUpNumberedHotkey(prefix, object, method)
         return this
@@ -34,7 +35,7 @@ class HotkeyManager {
     /* Set up a hotkey to go to the 'other' desktop.
      */
     goToOtherDesktop(hotkeyKey) {
-        object := this._desktopChanger
+        object := this.desktopChanger
         method := object.functions.SWAP
         callback := ObjBindMethod(object, method)
         Hotkey %hotkeyKey%, %callback%, On
@@ -44,7 +45,7 @@ class HotkeyManager {
     /* Set up a hotkey to resynchronise the desktop changer.
      */
     resyncDesktops(hotkeyKey) {
-        object := this._desktopChanger
+        object := this.desktopChanger
         method := object.functions.RESYNC
         callback := ObjBindMethod(object, method)
         Hotkey %hotkeyKey%, %callback%, On
@@ -64,13 +65,15 @@ class HotkeyManager {
         if (!RegExMatch(modKeyRegex, prefix)) {
             prefix .= " & "
         }
-        loop, 9 {
+        loop % this.nDesktops > 9 ? 9 : this.nDesktops {
             key := prefix . A_Index
             callback := ObjBindMethod(object, methodName, A_Index)
             Hotkey, %key%, %callback%, On
         }
-        key := prefix . 0
-        callback := ObjBindMethod(object, methodName, 10)
-        Hotkey %prefix%0, %callback%, On
+        if (this.nDesktops >= 10) {
+            key := prefix . 0
+            callback := ObjBindMethod(object, methodName, 10)
+            Hotkey %prefix%0, %callback%, On
+        }
     }
 }

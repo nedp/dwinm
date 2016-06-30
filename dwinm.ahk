@@ -25,19 +25,20 @@ class DWM {
     static DESKTOP_TOOLTIP_X := 62
     static VI_TOOLTIP_X := 81
 
-    static NUM_DESKTOPS := 10
+    static NUM_DESKTOPS := 9
 
     desktopChanger := new DesktopChanger(DWM.NUM_DESKTOPS
-            , {id: DWM.DESKTOP_TOOLTIP, x: DWM.DESKTOP_TOOLTIP_X})
+        , {id: DWM.DESKTOP_TOOLTIP, x: DWM.DESKTOP_TOOLTIP_X})
     windowMover := new WindowMover()
-    hotkeyManager := new HotkeyManager(this.desktopChanger, this.windowMover)
+    hotkeyManager := new HotkeyManager(this.desktopChanger, this.windowMover
+        , DWM.NUM_DESKTOPS)
 
     __new() {
         this.hotkeyManager
             .goToDesktop("#")
             .moveWindowToDesktop("#+")
             .goToOtherDesktop("#Tab")
-            .resyncDesktops("#Enter")
+            .resyncDesktops("#0")
     }
 }
 
