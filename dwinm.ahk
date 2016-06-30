@@ -22,8 +22,8 @@ class DWM {
     static DESKTOP_TOOLTIP := 1
     static VI_TOOLTIP := 2
 
-    static DESKTOP_TOOLTIP_X := 64
-    static VI_TOOLTIP_X := 80
+    static DESKTOP_TOOLTIP_X := 62
+    static VI_TOOLTIP_X := 81
 
     static NUM_DESKTOPS := 10
 
@@ -73,7 +73,7 @@ class ViManager {
 
     _clearTooltip() {
         if (this.mode == ViManager.PASSTHROUGH) {
-            ToolTip, , , , this.toolTipNumber
+            ToolTip, , , , DWM.VI_TOOLTIP
         }
     }
 }
