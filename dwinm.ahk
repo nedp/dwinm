@@ -95,8 +95,10 @@ class ViManager
     Escape::viManager.setMode(NORMAL)
 
 #If viManager.hasMode(SELECT)
-    ~Escape::
-    ~Enter::
+    ~*Escape::
+    ~*Enter::
+    ~^c::
+    ~^x::
         viManager.setMode(PASSTHROUGH)
     return
 
