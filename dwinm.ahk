@@ -82,7 +82,7 @@ class ViManager
     #j::Send !{Esc}
     #k::Send !+{Esc}
 
-    #Escape Up::
+    #Escape::
         viManager.setMode(NORMAL)
         refocus()
     return
