@@ -47,6 +47,8 @@
 
         PostMessage %WM_SYSCOMMAND%,  %wParam%, %lParam%, , ahk_id %hwnd%
 
+        refocus()
+
         return ErrorLevel
     }
 
