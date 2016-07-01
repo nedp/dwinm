@@ -11,8 +11,6 @@
     CoordMode ToolTip, Screen
 
     dwm := new DWinM()
-
-    vim := new ViManager(dwm)
 return
 
 class DWinM {
@@ -27,6 +25,8 @@ class DWinM {
     functions := { RESYNC: "resync" }
 
     nDesktops := this.NUM_DESKTOPS
+
+    vim := new ViManager({id: this.VI_TOOLTIP, x: this.VI_TOOLTIP_X})
 
     virtualDesktopManager := new VirtualDesktopManager()
     desktopMapper := new DesktopMapper(this.virtualDesktopManager)
@@ -58,6 +58,8 @@ class ViManager {
     static SELECT := "SELECT"
     static INSERT := "INSERT"
 
+    static TOOLTIP_TIMEOUT := 1000
+
     mode := ViManager.PASSTHROUGH
     clear := ObjBindMethod(this, "_clearTooltip")
 
@@ -68,11 +70,11 @@ class ViManager {
     setMode(mode) {
         this.mode := mode
 
-        ToolTip %mode% mode, this.tooltip.x, 0, this.id
+        ToolTip %mode% mode, this.tooltip.x, 0, this.tooltip.id
 
         if (mode == ViManager.PASSTHROUGH) {
             clear := this.clear
-            SetTimer %clear%, -1000
+            SetTimer %clear%, % -this.TOOLTIP_TIMEOUT
         }
     }
 
@@ -105,35 +107,35 @@ class ViManager {
 
 #InputLevel 0
 
-#If vim.hasMode(PASSTHROUGH)
+#If dwm.vim.hasMode(PASSTHROUGH)
     !Tab Up::
         Send ^!{Tab}^+!{Tab}
-        vim.setMode(SELECT)
+        dwm.vim.setMode(SELECT)
     return
 
-    #+j::vim.setMode(SELECT)
+    #+j::dwm.vim.setMode(SELECT)
 
     #j::Send !{Esc}
     #k::Send !+{Esc}
 
-    #Escape::vim.setMode(NORMAL)
+    #Escape::dwm.vim.setMode(NORMAL)
 
-#If vim.hasMode(NORMAL)
-    *Escape::vim.setMode(PASSTHROUGH)
-    i::vim.setMode(INSERT)
+#If dwm.vim.hasMode(NORMAL)
+    *Escape::dwm.vim.setMode(PASSTHROUGH)
+    i::dwm.vim.setMode(INSERT)
 
-#If vim.hasMode(INSERT)
-    Escape::vim.setMode(NORMAL)
+#If dwm.vim.hasMode(INSERT)
+    Escape::dwm.vim.setMode(NORMAL)
 
-#If vim.hasMode(SELECT)
+#If dwm.vim.hasMode(SELECT)
     ~*Escape::
     ~*Enter::
     ~^c::
     ~^x::
-        vim.setMode(PASSTHROUGH)
+        dwm.vim.setMode(PASSTHROUGH)
     return
 
-#If vim.hasMode(NORMAL, SELECT)
+#If dwm.vim.hasMode(NORMAL, SELECT)
     h::Left
     j::Down
     k::Up
