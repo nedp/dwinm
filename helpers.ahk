@@ -1,15 +1,11 @@
-﻿/*
- * Original work Copyright 2016 Joshua Graham
- * Modified work Copyright 2016 Ned Pummeroy
- */
-
-debugger(message) {
+﻿debugger(message) {
     ;~ ToolTip, % message
     ;~ sleep 100
     return
 }
 
-/* Send keystrokes with minimal delay to mitigate flickering
+/*
+ * Send keystrokes with minimal delay to mitigate flickering
  * and improve responsiveness.
  */
 quickSend(toSend) {
@@ -23,7 +19,8 @@ quickSend(toSend) {
     return
 }
 
-/* Send keystrokes with a delay to improve reliability.
+/*
+ * Send keystrokes with a delay to improve reliability.
  */
 slowSend(toSend) {
     static slowDelay := 60
@@ -61,11 +58,6 @@ callFunction(possibleFunction) {
     }
 }
 
-getDesktopNumberFromHotkey(keyCombo) {
-    number := RegExReplace(keyCombo, "[^\d]", "")
-    return number == 0 ? 10 : number
-}
-
 getIndexFromArray(searchFor, array) {
     loop % array.MaxIndex() {
         if (array[A_index] == searchFor) {
@@ -75,7 +67,8 @@ getIndexFromArray(searchFor, array) {
     return -1
 }
 
-/* Refocuses on the topmost window in the current desktop.
+/*
+ * Refocus on the topmost window in the current desktop.
  */
 refocus() {
     slowSend("!+{Esc}!{Esc}") ;; quickSend is dodgy with focusing.

@@ -1,8 +1,4 @@
-﻿/*
- * Unmodified work Copyright 2016 Joshua Graham
- */
-class VirtualDesktopManagerClass
-{
+﻿class VirtualDesktopManager {
     __new()
     {
         debugger("creating th vdm")
@@ -40,7 +36,6 @@ class VirtualDesktopManagerClass
 
     getDesktopGuid(hwnd)
     {
-        debugger("getting the guid")
         return this._guidToStr(this.getWindowDesktopId(hwnd))
     }
     ; https://github.com/cocobelgica/AutoHotkey-Util/blob/master/Guid.ahk#L36

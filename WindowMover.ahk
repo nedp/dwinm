@@ -1,52 +1,78 @@
-﻿/*
- * Original work Copyright 2016 Joshua Graham
- * Modified work Copyright 2016 Ned Pummeroy
- */
-class WindowMover
-{
-    functions := {MOVE_ACTIVE: "moveActiveToDesktop"}
+﻿class WindowMover {
+    static MAX_RESYNC_ATTEMPTS := 3
 
-    __new()
-    {
-        this.dllWindowMover := new JPGIncDllWindowMover()
-        this.desktopMapper
-            := new DesktopMapperClass(new VirtualDesktopManagerClass())
-        this.monitorMapper := new MonitorMapperClass()
+    static 32BitPID
+    static 64BitPID
+
+    functions := { MOVE_ACTIVE: "moveActiveToDesktop" }
+
+    __new() {
+        if (!this.isAvailable()) {
+            this._startUpDLLInjectors()
+        }
     }
 
-    /* Move the active window to the specified desktop via the best
-     * available method.
+    /*
+     * Check whether both the 32 and 64 bit dll injectors are available.
      */
-    moveActiveToDesktop(targetDesktop, follow := false) {
-        if (this.dllWindowMover.isAvailable()) {
-            this.dllWindowMover.moveActiveWindowToDesktop(targetDesktop)
-        } else {
-            this._moveActiveToDesktopManually(targetDesktop)
+    isAvailable() {
+        if (this.32BitPID) {
+            process exist, % this.32BitPID
+            if (ErrorLevel == 0) {
+                this.32BitPID := false
+            }
         }
-
-        refocus()
-        return this
+        if (this.64BitPID) {
+            process exist, % this.64BitPID
+            if (ErrorLevel == 0) {
+                this.64BitPID := false
+            }
+        }
+        return !!this.32BitPID && !!this.64BitPID
     }
 
-    ;; Move the active window to the specified desktop via keypresses.
-    _moveActiveToDesktopManually(targetDesktop) {
-        currentDesktop := this.desktopMapper.getDesktopNumber()
-        if (currentDesktop == targetDesktop) {
-            return
+    /*
+     * Move the active window to the specified desktop number,
+     * returning zero on success or an error code on failure.
+     */
+    moveActiveToDesktop(desktop) {
+        desktop -= 1 ;; The dll is zero-indexed.
+        hwnd := WinExist("A")
+
+        marker := 43968 ; 0xABC0
+        wParam := desktop | marker
+        lParam := hwnd
+
+        WM_SYSCOMMAND := 274
+
+        PostMessage %WM_SYSCOMMAND%,  %wParam%, %lParam%, , ahk_id %hwnd%
+
+        return ErrorLevel
+    }
+
+    /*
+     * Resynchronise to ensure that the injectors are running.
+     */
+    resync := this.__new
+
+    _startUpDLLInjectors() {
+        loop % this.MAX_RESYNC_ATTEMPTS {
+            myPID := DllCall("GetCurrentProcessId")
+
+            ;; Use guards so we only start processes which aren't already running.
+            if (!this.32BitPid) {
+                run, AutoHotkeyU32.exe dll/dllCaller.ahk %myPID% 32,
+                    , useerrorlevel, pid
+                this.32BitPid := pid
+            }
+            if (!this.64BitPid) {
+                run, AutoHotkeyU64.exe dll/dllCaller.ahk %myPID% 64,
+                    , useerrorlevel, pid
+                this.64BitPID := pid
+            }
+            if (this.32BitPid && this.64BitPid) {
+                return
+            }
         }
-
-        openMultitaskingViewFrame()
-
-        ;; Press tab to pick the active monitor.
-        nTabs := this.monitorMapper.getRequiredTabCount(WinActive("A"))
-        slowSend("{Tab " nTabs "}")
-
-        ;; Open the context menu and press down to pick the desktop.
-        nDowns := currentDesktop - 1
-        ;; The current desktop doesn't appear in the menu.
-        if (targetDesktop > currentDesktop) nDowns -= 1
-        slowSend("{Appskey}m{Down " nDown "}{Enter}")
-
-        closeMultitaskingViewFrame()
     }
 }

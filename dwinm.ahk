@@ -1,7 +1,3 @@
-/*
- * Copyright 2016 Ned Pummeroy
- */
-
 #UseHook On
 #NoEnv
 #Warn
@@ -14,11 +10,12 @@
 
     CoordMode ToolTip, Screen
 
-    main := new DWM()
-    vim := new ViManager()
+    dwm := new DWinM()
+
+    vim := new ViManager(dwm)
 return
 
-class DWM {
+class DWinM {
     static DESKTOP_TOOLTIP := 1
     static VI_TOOLTIP := 2
 
@@ -27,18 +24,31 @@ class DWM {
 
     static NUM_DESKTOPS := 9
 
-    desktopChanger := new DesktopChanger(DWM.NUM_DESKTOPS
-        , {id: DWM.DESKTOP_TOOLTIP, x: DWM.DESKTOP_TOOLTIP_X})
+    functions := { RESYNC: "resync" }
+
+    nDesktops := this.NUM_DESKTOPS
+
+    virtualDesktopManager := new VirtualDesktopManager()
+    desktopMapper := new DesktopMapper(this.virtualDesktopManager)
+
+    desktopChanger := new DesktopChanger(this, this.desktopMapper
+        , {id: this.DESKTOP_TOOLTIP, x: this.DESKTOP_TOOLTIP_X})
     windowMover := new WindowMover()
-    hotkeyManager := new HotkeyManager(this.desktopChanger, this.windowMover
-        , DWM.NUM_DESKTOPS)
+    hotkeyManager
+        := new HotkeyManager(this.desktopChanger, this.windowMover, this)
 
     __new() {
         this.hotkeyManager
             .goToDesktop("#")
             .moveWindowToDesktop("#+")
             .goToOtherDesktop("#Tab")
-            .resyncDesktops("#0")
+            .resync("#0")
+    }
+
+    resync() {
+        this.desktopMapper.resync()
+        this.desktopChanger.resync()
+        this.windowMover.resync()
     }
 }
 
@@ -51,10 +61,14 @@ class ViManager {
     mode := ViManager.PASSTHROUGH
     clear := ObjBindMethod(this, "_clearTooltip")
 
+    __new(tooltip) {
+        this.tooltip := tooltip
+    }
+
     setMode(mode) {
         this.mode := mode
 
-        ToolTip %mode% mode, DWM.VI_TOOLTIP_X, 0, DWM.VI_TOOLTIP
+        ToolTip %mode% mode, this.tooltip.x, 0, this.id
 
         if (mode == ViManager.PASSTHROUGH) {
             clear := this.clear
@@ -74,7 +88,7 @@ class ViManager {
 
     _clearTooltip() {
         if (this.mode == ViManager.PASSTHROUGH) {
-            ToolTip, , , , DWM.VI_TOOLTIP
+            ToolTip, , , , this.tooltip.id
         }
     }
 }
@@ -138,11 +152,11 @@ class ViManager {
 
 #Enter::Return ; don't like narrator
 
-#Include commonFunctions.ahk
-#Include desktopChanger.ahk
-#Include windowMover.ahk
-#Include desktopMapper.ahk
-#include virtualDesktopManager.ahk
-#Include monitorMapper.ahk
-#Include hotkeyManager.ahk
-#Include dllWindowMover.ahk
+#Include helpers.ahk
+
+#Include DesktopChanger.ahk
+#Include DesktopMapper.ahk
+#Include HotkeyManager.ahk
+#Include MonitorMapper.ahk
+#include VirtualDesktopManager.ahk
+#Include WindowMover.ahk

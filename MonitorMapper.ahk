@@ -3,8 +3,7 @@ class MonitorMapperClass
 {
     ; This part figures out how many times we need to hit Tab to get to the
     ; monitor with the window we are trying to send to another desktop.
-    getRequiredTabCount(hwnd)
-    {
+    getRequiredTabCount(hwnd) {
         activemonitor := this.getWindowsMonitorNumber(hwnd)
 
         SysGet, monitorcount, MonitorCount
@@ -30,8 +29,7 @@ class MonitorMapperClass
     /*
      * This function returns the monitor number of the window with the given hwnd
      */
-    getWindowsMonitorNumber(hwnd)
-    {
+    getWindowsMonitorNumber(hwnd) {
         WinGetPos, x, y, width, height, % "Ahk_id" hwnd
         debugger("Window Position/Size:`nX: " X "`nY: " Y "`nWidth: " width "`nHeight: " height)
         SysGet, monitorcount, MonitorCount

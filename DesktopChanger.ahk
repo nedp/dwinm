@@ -1,25 +1,20 @@
-/*
- * Original work Copyright 2016 Joshua Graham
- * Modified work Copyright 2016 Ned Pummeroy
- */
-
 class DesktopChanger {
     static MAX_RETRIES := 3 ;; Maximum number of attempts to resync.
     static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
 
     functions := { PICK: "pickDesktop"
-                 , SWAP: "swapDesktops"
-                 , RESYNC: "resyncDesktops" }
+                 , SWAP: "swapDesktops" }
 
     otherDesktop := 1
 
-    desktopMapper := new DesktopMapperClass(new VirtualDesktopManagerClass())
-    desktop := this.desktopMapper.getDesktopNumber()
+    __new(dwm, desktopMapper, tooltip) {
+        this.dwm := dwm
+        this.desktopMapper := desktopMapper
+        this.tooltip := tooltip
 
-    __new(nDesktops, tooltipParams) {
-        this.nDesktopsTarget := nDesktops
-        this.tooltip := tooltipParams
-        this.resyncDesktops()
+        this.desktop := desktopMapper.getDesktopNumber()
+        desktop := this.desktop
+        this.resync()
     }
 
     swapDesktops(keyCombo := "") {
@@ -28,7 +23,7 @@ class DesktopChanger {
         this.pickDesktop(otherDesktop)
     }
 
-    resyncDesktops(keyCombo := "") {
+    resync(keyCombo := "") {
         ToolTip Synchronising..., 0, 0, this.tooltipNumber
 
         this.nDesktops := this._resetDesktopCount()
@@ -66,7 +61,7 @@ class DesktopChanger {
 
     displayDesktop() {
         message := this.desktop
-        if (this.nDesktops != this.nDesktopsTarget) {
+        if (this.nDesktops != this.dwm.nDesktops) {
             message .= "/" . this.nDesktops
         }
         this._displayTooltip(message)
@@ -78,7 +73,7 @@ class DesktopChanger {
             Sleep DesktopChanger.RESYNC_DELAY
 
             nActualDesktops := this.desktopMapper.getNumberOfDesktops()
-            nDesktopsToMake := this.nDesktopsTarget - nActualDesktops
+            nDesktopsToMake := this.dwm.nDesktops - nActualDesktops
 
             if (nDesktopsToMake == 0) {
                 return nActualDesktops
@@ -106,18 +101,17 @@ class DesktopChanger {
     }
 
     _resetCurrentDesktop() {
-        loop % DesktopChanger.MAX_RETRIES {
-            Sleep DesktopChanger.RESYNC_DELAY
+        loop % this.MAX_RETRIES {
+            Sleep this.RESYNC_DELAY
 
-            nTotal := this.nDesktops
-            slowSend("^#{Left " nTotal "}")
+            slowSend("^#{Left " this.nDesktops "}")
 
-            Sleep DesktopChanger.RESYNC_DELAY
+            Sleep this.RESYNC_DELAY
 
             nMove := this.desktop - 1
             slowSend("^#{Right " nMove "}")
 
-            Sleep DesktopChanger.RESYNC_DELAY
+            Sleep this.RESYNC_DELAY
 
             actualDesktop := this.desktopMapper.getDesktopNumber()
             if (actualDesktop == this.desktop) {
