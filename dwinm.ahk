@@ -1,16 +1,18 @@
 #UseHook On
 #NoEnv
 #Warn
-
 #SingleInstance
-    PASSTHROUGH := ViManager.PASSTHROUGH
-    NORMAL := ViManager.NORMAL
-    SELECT := ViManager.SELECT
-    INSERT := ViManager.INSERT
 
-    CoordMode ToolTip, Screen
+PASSTHROUGH := ViManager.PASSTHROUGH
+NORMAL := ViManager.NORMAL
+SELECT := ViManager.SELECT
+INSERT := ViManager.INSERT
 
-    dwm := new DWinM()
+SetWorkingDir %A_ScriptDir%
+CoordMode ToolTip, Screen
+
+DWM := new DWinM()
+
 return
 
 class DWinM {
@@ -107,35 +109,35 @@ class ViManager {
 
 #InputLevel 0
 
-#If dwm.vim.hasMode(PASSTHROUGH)
+#If DWM.vim.hasMode(PASSTHROUGH)
     !Tab Up::
         Send ^!{Tab}^+!{Tab}
-        dwm.vim.setMode(SELECT)
+        DWM.vim.setMode(SELECT)
     return
 
-    #+j::dwm.vim.setMode(SELECT)
+    #+j::DWM.vim.setMode(SELECT)
 
     #j::Send !{Esc}
     #k::Send !+{Esc}
 
-    #Escape::dwm.vim.setMode(NORMAL)
+    #Escape::DWM.vim.setMode(NORMAL)
 
-#If dwm.vim.hasMode(NORMAL)
-    *Escape::dwm.vim.setMode(PASSTHROUGH)
-    i::dwm.vim.setMode(INSERT)
+#If DWM.vim.hasMode(NORMAL)
+    *Escape::DWM.vim.setMode(PASSTHROUGH)
+    i::DWM.vim.setMode(INSERT)
 
-#If dwm.vim.hasMode(INSERT)
-    Escape::dwm.vim.setMode(NORMAL)
+#If DWM.vim.hasMode(INSERT)
+    Escape::DWM.vim.setMode(NORMAL)
 
-#If dwm.vim.hasMode(SELECT)
+#If DWM.vim.hasMode(SELECT)
     ~*Escape::
     ~*Enter::
     ~^c::
     ~^x::
-        dwm.vim.setMode(PASSTHROUGH)
+        DWM.vim.setMode(PASSTHROUGH)
     return
 
-#If dwm.vim.hasMode(NORMAL, SELECT)
+#If DWM.vim.hasMode(NORMAL, SELECT)
     h::Left
     j::Down
     k::Up
@@ -154,11 +156,11 @@ class ViManager {
 
 #Enter::Return ; don't like narrator
 
-#Include helpers.ahk
+#Include %A_ScriptDir%/helpers.ahk
 
-#Include DesktopChanger.ahk
-#Include DesktopMapper.ahk
-#Include HotkeyManager.ahk
-#Include MonitorMapper.ahk
-#include VirtualDesktopManager.ahk
-#Include WindowMover.ahk
+#Include %A_ScriptDir%/DesktopChanger.ahk
+#Include %A_ScriptDir%/DesktopMapper.ahk
+#Include %A_ScriptDir%/HotkeyManager.ahk
+#Include %A_ScriptDir%/MonitorMapper.ahk
+#include %A_ScriptDir%/VirtualDesktopManager.ahk
+#Include %A_ScriptDir%/WindowMover.ahk
