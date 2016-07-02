@@ -1,0 +1,15 @@
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layout]
+
+"Scancode Map"=hex:\
+; Scancode header
+00,00,00,00,\
+; Version info
+00,00,00,00,\
+; Number of bindings + 1
+02,00,00,00,\
+; Convert CapsLock (0x0031) -> Esc (0x0001)
+01,00,3A,00,\
+; Null terminator
+00,00,00,00
