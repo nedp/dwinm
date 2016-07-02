@@ -3,32 +3,101 @@
 #Warn
 #SingleInstance
 
-PASSTHROUGH := ViManager.PASSTHROUGH
-NORMAL := ViManager.NORMAL
-SELECT := ViManager.SELECT
-INSERT := ViManager.INSERT
-
 SetWorkingDir %A_ScriptDir%
 CoordMode ToolTip, Screen
 
 DWM := new DWinM()
 
-return
+DWM.hotkeyManager
+    .swapDesktops("!Tab")
+    .pickDesktop("!")
+    .moveWindowToDesktop("!+")
+    .resync("!0")
+
+#If DWM.hasMode(DWM.Modes.DESKTOP)
+    ;; Change modes.
+    !s::DWM.setMode(DWM.Modes.SELECT)
+    !Escape::DWM.setMode(DWM.Modes.NORMAL)
+    !i::DWM.setMode(DWM.Modes.PASSTHROUGH)
+
+    ;; Browse windows.
+    ^!Tab::
+        Send ^!{Tab}^+!{Tab}
+        DWM.setMode(DWM.Modes.SELECT)
+    return
+
+    ;; Cycle windows.
+    !j::Send !{Esc}
+    !k::Send !+{Esc}
+
+    ;; Close window.
+    !w::Send !{F4}
+
+    ;; Lock the screen.
+    !^l::Run rundll32.exe user32.dll LockWorkStation, %A_Windir%\System32
+
+    ;; Open the start menu.
+    !Space::Send ^{Escape}
+
+    ;; Reload dwinm.
+    !^q::Reload
+
+#If DWM.hasMode(DWM.Modes.NORMAL)
+    ;; Change modes.
+    *Escape::DWM.setMode(DWM.Modes.DESKTOP)
+    i::DWM.setMode(DWM.Modes.INSERT)
+
+    ;; Use Windows' pauper tiling.
+    #h::#Left
+    #j::#Down
+    #k::#Up
+    #l::#Right
+
+#If DWM.hasMode(DWM.Modes.INSERT)
+    ;; Change modes.
+    Escape::DWM.setMode(DWM.Modes.NORMAL)
+
+#If DWM.hasMode(DWM.Modes.SELECT)
+    ~*Escape::
+    ~*Enter::
+    ~*Space::
+    ~^c::
+    ~^x::
+        DWM.setMode(DWM.Modes.DESKTOP)
+    return
+
+#If DWM.hasMode(DWM.Modes.NORMAL, DWM.Modes.SELECT)
+    h::Left
+    j::Down
+    k::Up
+    l::Right
+
+#If DWM.hasMode(DWM.Modes.PASSTHROUGH)
+    ^!Escape::DWM.setMode(DWM.Modes.DESKTOP)
+#If
 
 class DWinM {
+    static Modes := { DESKTOP: "DESKTOP"
+                    , NORMAL: "NORMAL"
+                    , SELECT : "SELECT"
+                    , INSERT: "INSERT"
+                    , PASSTHROUGH: "PASSTHROUGH" }
+
+    static TOOLTIP_TIMEOUT := 1000
+
+    mode := this.Modes.DESKTOP
+
     static DESKTOP_TOOLTIP := 1
-    static VI_TOOLTIP := 2
+    static MODE_TOOLTIP := 2
 
     static DESKTOP_TOOLTIP_X := 62
-    static VI_TOOLTIP_X := 81
+    static MODE_TOOLTIP_X := 81
 
     static NUM_DESKTOPS := 9
 
-    functions := { RESYNC: "resync" }
+    Functions := { RESYNC: "resync" }
 
     nDesktops := this.NUM_DESKTOPS
-
-    vim := new ViManager({id: this.VI_TOOLTIP, x: this.VI_TOOLTIP_X})
 
     virtualDesktopManager := new VirtualDesktopManager()
     desktopMapper := new DesktopMapper(this.virtualDesktopManager)
@@ -39,42 +108,19 @@ class DWinM {
     hotkeyManager
         := new HotkeyManager(this.desktopChanger, this.windowMover, this)
 
-    __new() {
-        this.hotkeyManager
-            .goToDesktop("#")
-            .moveWindowToDesktop("#+")
-            .goToOtherDesktop("#Tab")
-            .resync("#0")
-    }
-
     resync() {
         this.desktopMapper.resync()
         this.desktopChanger.resync()
         this.windowMover.resync()
     }
-}
 
-class ViManager {
-    static PASSTHROUGH := "PASSTHROUGH"
-    static NORMAL := "NORMAL"
-    static SELECT := "SELECT"
-    static INSERT := "INSERT"
-
-    static TOOLTIP_TIMEOUT := 1000
-
-    mode := ViManager.PASSTHROUGH
     clear := ObjBindMethod(this, "_clearTooltip")
-
-    __new(tooltip) {
-        this.tooltip := tooltip
-    }
-
     setMode(mode) {
         this.mode := mode
 
-        ToolTip %mode% mode, this.tooltip.x, 0, this.tooltip.id
+        ToolTip %mode% mode, this.MODE_TOOLTIP_X, 0, this.MODE_TOOLTIP
 
-        if (mode == ViManager.PASSTHROUGH) {
+        if (mode == this.Modes.DESKTOP) {
             clear := this.clear
             SetTimer %clear%, % -this.TOOLTIP_TIMEOUT
         }
@@ -84,77 +130,20 @@ class ViManager {
         thismode := this.mode
         for _, mode in modes {
             if (this.mode == mode) {
-                return True
+                return true
             }
         }
-        return False
+        return false
     }
 
     _clearTooltip() {
-        if (this.mode == ViManager.PASSTHROUGH) {
-            ToolTip, , , , this.tooltip.id
+        if (this.mode == this.Modes.DESKTOP) {
+            ToolTip, , , , this.MODE_TOOLTIP
         }
     }
 }
 
-#InputLevel 1
-    *CapsLock::Send {Esc Down}
-    *CapsLock Up::Send {Esc Up}
-
-    *LWin::Send {LAlt Down}
-    *LWin Up::Send {LAlt Up}
-
-    *LAlt::Send {LWin Down}
-    *LAlt Up::Send {LWin Up}
-
 #InputLevel 0
-
-#If DWM.vim.hasMode(PASSTHROUGH)
-    !Tab Up::
-        Send ^!{Tab}^+!{Tab}
-        DWM.vim.setMode(SELECT)
-    return
-
-    #+j::DWM.vim.setMode(SELECT)
-
-    #j::Send !{Esc}
-    #k::Send !+{Esc}
-
-    #Escape::DWM.vim.setMode(NORMAL)
-
-#If DWM.vim.hasMode(NORMAL)
-    *Escape::DWM.vim.setMode(PASSTHROUGH)
-    i::DWM.vim.setMode(INSERT)
-
-#If DWM.vim.hasMode(INSERT)
-    Escape::DWM.vim.setMode(NORMAL)
-
-#If DWM.vim.hasMode(SELECT)
-    ~*Escape::
-    ~*Enter::
-    ~^c::
-    ~^x::
-        DWM.vim.setMode(PASSTHROUGH)
-    return
-
-#If DWM.vim.hasMode(NORMAL, SELECT)
-    h::Left
-    j::Down
-    k::Up
-    l::Right
-
-#If
-
-;; Close window
-#w::Send !{F4}
-
-#^l::Send #l
-
-#^q::Reload
-
-#Space::LWin
-
-#Enter::Return ; don't like narrator
 
 #Include %A_ScriptDir%/helpers.ahk
 

@@ -4,7 +4,7 @@
     static 32BitPID
     static 64BitPID
 
-    functions := { MOVE_ACTIVE: "moveActiveToDesktop" }
+    Functions := { MOVE_ACTIVE: "moveActiveToDesktop" }
 
     __new() {
         if (!this.isAvailable()) {

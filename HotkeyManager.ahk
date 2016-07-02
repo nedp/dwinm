@@ -1,4 +1,5 @@
 class HotkeyManager {
+
     __new(desktopChanger, windowMover, dwm) {
         this.desktopChanger := desktopChanger
         this.windowMover := windowMover
@@ -13,8 +14,12 @@ class HotkeyManager {
      */
     moveWindowToDesktop(prefix) {
         object := this.windowMover
-        method := object.functions.MOVE_ACTIVE
+        method := object.Functions.MOVE_ACTIVE
+
+        Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         this._setUpNumberedHotkey(prefix, object, method)
+        Hotkey If
+
         return this
     }
 
@@ -24,21 +29,29 @@ class HotkeyManager {
      * Sets up `this.nDesktops` hotkeys of the form `prefix<N>`,
      * where <N> is a number key.
      */
-    goToDesktop(prefix) {
+    pickDesktop(prefix) {
         object := this.desktopChanger
-        method := object.functions.PICK
+        method := object.Functions.PICK
+
+        Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         this._setUpNumberedHotkey(prefix, object, method)
+        Hotkey If
+
         return this
     }
 
     /*
      * Set up a hotkey to go to the 'other' desktop.
      */
-    goToOtherDesktop(hotkeyKey) {
+    swapDesktops(hotkeyKey) {
         object := this.desktopChanger
-        method := object.functions.SWAP
+        method := object.Functions.SWAP
+
+        Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         callback := ObjBindMethod(object, method)
-        Hotkey %hotkeyKey%, %callback%, On
+        Hotkey %hotkeyKey%, %callback%, On, 1
+        Hotkey If
+
         return this
     }
 
@@ -47,9 +60,13 @@ class HotkeyManager {
      */
     resync(hotkeyKey) {
         object := this.dwm
-        method := object.functions.RESYNC
+        method := object.Functions.RESYNC
+
+        Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         callback := ObjBindMethod(object, method)
-        Hotkey %hotkeyKey%, %callback%, On
+        Hotkey %hotkeyKey%, %callback%, On, 1
+        Hotkey If
+
         return this
     }
 
@@ -61,19 +78,19 @@ class HotkeyManager {
     ;; There will be one argument matching <N>, except when N=0;
     ;; the argument for N=0 will be 10.
     _setUpNumberedHotkey(prefix, object, methodName) {
-        static modKeyRegex := "[#!^+<>*~$]"
-        if (!RegExMatch(modKeyRegex, prefix)) {
+        static modKeyRegex := "[#!^+<>*~$]*"
+        if (!RegExMatch(prefix, modKeyRegex)) {
             prefix .= " & "
         }
         loop % this.dwm.nDesktops > 9 ? 9 : this.dwm.nDesktops {
             key := prefix . A_Index
             callback := ObjBindMethod(object, methodName, A_Index)
-            Hotkey, %key%, %callback%, On
+            Hotkey, %key%, %callback%, On, 1
         }
         if (this.dwm.nDesktops >= 10) {
             key := prefix . 0
             callback := ObjBindMethod(object, methodName, 10)
-            Hotkey %prefix%0, %callback%, On
+            Hotkey %key%, %callback%, On, 1
         }
     }
 }

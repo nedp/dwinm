@@ -2,7 +2,7 @@ class DesktopChanger {
     static MAX_RETRIES := 3 ;; Maximum number of attempts to resync.
     static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
 
-    functions := { PICK: "pickDesktop"
+    Functions := { PICK: "pickDesktop"
                  , SWAP: "swapDesktops" }
 
     otherDesktop := 1
@@ -13,7 +13,6 @@ class DesktopChanger {
         this.tooltip := tooltip
 
         this.desktop := desktopMapper.getDesktopNumber()
-        desktop := this.desktop
         this.resync()
     }
 
