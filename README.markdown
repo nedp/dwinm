@@ -14,59 +14,189 @@ dwinm is based on three core ideas:
 
 ## Features
 
-### Key swaps
+* Bindings for managing windows within a virtual desktop.
+* Bindings for moving windows between virtual desktops.
+* Bindings for switching between virtual desktops.
+* Modal hotkey definitions, supporting a vi-like mode.
+* Emacs-like hotkey definitions for explorers and browsers.
+* Reversible registry edit for remapping CapsLock to Escape.
 
-* Swaps the Left Win and Left Alt keys
-* Binds CapsLock to Escape
+## Usage
 
-### DWM bindings
+### Display
 
-Bindings for instantly:
+The first thing you'll notice is that dwinm gives you information via a couple
+of tooltips.
 
-* Changing to virtual desktop number X
-* Swapping between a 'main' and 'other' virtual desktop
-  * Win+wab (recall LWin and LAlt are swapped) will swap
-    the 'main' and 'other' desktops.
-  * The 'other' desktop is remembered until you swap back into it.
-* Moving windows between virtual desktops
-* *Cycling* through windows (Alt+Esc-like, not Alt+Tab-like)
+#### Desktops
 
-### Bindings for the Window picker (normally Ctrl+Alt+Tab)
+In the top left corner of the screen, a tooltip is shown with a number
+for each desktop.
+The current desktop is highlighted with square brackets.
+The "other" desktop (activated with Alt+Tab) is highlighted with dots.
 
-* Alt+Tab to bring it up (but recall LWin and LAlt are swapped)
-* vi bindings for selecting a window (SELECT mode)
+e.g. ` 1  2 .3. 4  5 [6] 7  8  9 ` indicates that you're on desktop 6 and
+the "other" desktop is desktop 3.
 
-### Generalised vi-like bindings
+#### Mode indicator
 
-* Normally in PASSTHROUGH mode
-  * Almost all keypresses just go through
-  * Go to NORMAL mode with Win+Escape
-  * Go to SELECT mode with Ctrl+Win+J
-* NORMAL mode uses vi-like movement bindings; it is
-  * intended for e.g. file browsing,
-  * supports:
-    * hjkl
-  * Go back to PASSTHROUGH mode with Escape
-  * Go to INSERT mode with i
-* SELECT is like NORMAL mode but
-  * intended for choosing a single item from a single menu and
-  * i passes through; no INSERT mode.
-  * Return to PASSTHOUGH mode with the following keybinds, which
-    themselves will passthrough:
-    * Enter
-    * Escape
-    * ^c
-    * ^v
-* INSERT mode is like PASSTHROUGH mode but
-  * Intended for use in the middle of NORMAL mode, for:
-    * navigating between (NORMAL) and filling (INSERT) in text fields,
-      for example in Excel
-    * turning other editors into something kinda vi-like;
-      needs work though
-  * Ctrl+Win+J passes through, no SELECT mode
-  * Escape returns you to NORMAL mode
+Below the desktop tooltip is the mode indicator.
+In `DESKTOP` mode, the mode indicator is hidden.
+In all other modes, the name of the current mode is displayed.
 
-### Deficiencies
+### Modes
+
+dwinm is always in one of several modes.
+
+`DESKTOP` is the default mode, with window management bindings.
+
+`NORMAL` is accessed from `DESKTOP` with `Alt+Escape`, acts like vi.
+
+`INSERT` is accessed from `NORMAL` with `i`, it's optimised for text insertion.
+Return to `NORMAL` with `Escape`.
+
+`SELECT` is accessed from `DESKTOP` with `Alt+s`, it's a limited `NORMAL` mode.
+It's exited by pressing `Enter`, `Escape`, or a few other intuitive keybinds.
+It is optimised for picking items from menus.
+
+`PASSTHROUGH` is accessed from `DESKTOP` with `Alt+i`,
+it allows all keypresses to pass through unaffected
+except `Ctrl+Shift+Escape`, which returns you to `DESKTOP` mode.
+
+### `DESKTOP` mode keybinds
+
+| Combination | Command |
+|:-----------:|:--------|
+| Alt+Escape  | Enter `NORMAL` mode
+| Alt+s       | Enter `SELECT` mode
+| Alt+i       | Enter `PASSTHROUGH` mode
+| Alt+(X)     | Change to desktop (X), with (X) is in 1-9
+| Alt+0       | Resynchronise dwinm
+| Alt+Shift+(X) | Send active window to desktop (X), with (X) in 1-9
+| Alt+Tab     | Swap between the active desktop and the other desktop
+| Ctrl+Alt+Tab| Enter `SELECT` mode for the window browser
+| Win+Tab     | Enter `SELECT` mode and bring up the task view
+| Alt+j       | Cycle down the window stack, like Alt+Escape
+| Alt+k       | Cycle up the window stack, like Alt+Shift+Escape
+| Alt+w       | Close the active window (Alt+F4)
+| Ctrl+Alt+L  | Lock the screen
+| Alt+Shift+(h/j/k/l) | Maps to Win+(Left/Down/Up/Right) respectively
+| Ctrl+Alt+q  | Reload dwinm, useful for reconfiguring
+| Alt+Space   | Bring up the start menu (Windows key)
+
+### `NORMAL` mode keybinds
+
+Move the cursor:
+
+| Key | Movement      | Simulated Keys |
+|:---:|:-------------:|:---------------|
+|Basic|               |
+| h   | Left          | Left
+| j   | Down          | Down
+| k   | Up            | Up
+| l   | Right         | Right
+|Words|               |
+| b   | Back word     | Ctrl+Left
+| w   | Next word     | Ctrl+Right
+|Lines|               |
+| 0   | Start of line | Home
+| $   | End of line   | End
+| _   | Start of first word in line\* | Home Left Ctrl+Right
+| ^   | Start of first word in line | Home Left Ctrl+Right
+|Doc  |               |
+| gg  | Start of doc  | Ctrl+Home
+| G   | End of doc    | Ctrl+End
+
+* Note, `_` works differently in combinations such as `d_`, `c_`, etc.
+  in these, it makes the operation target the whole line, not work as a
+  movement. `^` doesn't behave like this with other commands.
+
+Enter insert mode at various position by simulating
+complicated key chains:
+
+| Keychain | Position |
+|:--------:|:--------:|
+| `i`      | Here
+| `I`      | Before this line (except leading whitespace)
+| `a`      | After this character
+| `A`      | End of line
+| `o`      | At a new line before start of line
+| `O`      | At a new line after end of line
+
+Delete stuff, yanking it (cut):
+
+| Keychain    | Target |
+|:-----------:|:-------|
+| `x`         | This character (Delete)
+| `X`         | Previous character (BackSpace)
+| `dd` or `d_`| This line
+| `D`         | Here to end of line
+| `d<move>`   | Here to `move` target
+
+Change stuff, by deleting and yanking (cutting) then entering `INSERT` mode:
+
+| Keychain            | Target |
+|:-------------------:|:-------|
+| `s`                 | This character
+| `S` or `cc` or `c_` | This line (except leading whitespace)
+| `C`                 | Here to end of line
+| `c<move>`           | Here to `move` target
+| `cw`                | (Exception to above if inside a word) Here to end of word
+
+Yank (copy) and put (paste) stuff:
+
+| Keychain            | Command |
+|:-------------------:|:--------|
+| `y`                 | Yank selection
+| `Y` or `yy` or `y_` | Yank this line
+| `c<move>`           | Yank from here to `move` target
+| `p`                 | Put here
+| `P`                 | Put before this character
+
+Miscellaneous commands:
+
+| Combination | Command              | Simulated keys |
+|:-----------:|:--------------------:|:---------------|
+| u           | Undo                 | Ctrl+z
+| Ctrl+r      | Redo                 | Ctrl+y
+| /           | Search               | Ctrl+f
+| Shift+j     | Merge with next line | End Space Shift+Ctrl+Right BackSpace
+
+### `INSERT` mode keybinds
+
+Pressing either keychain `jk` or `kj` will enter `NORMAL` mode
+
+| Combination  | Command |
+|:------------:|:--------|
+| Ctrl+W       | Delete+yank (cut) last word
+| Ctrl+U       | Delete+yank (cut) to start of first word in line
+
+### `SELECT` mode keybinds
+
+Press any of the following keys to pass the pressed key through
+to whatever application you're using, and return to `DESKTOP` mode.
+
+* `Escape`
+* `Enter`
+* `Space`
+* `Ctrl+C`
+* `Ctrl+X`
+
+Select items with basic movements:
+
+| Key | Simulated Keys |
+|:---:|:---------------|
+| h   | Left
+| j   | Down
+| k   | Up
+| l   | Right
+
+### `PASSTHROUGH` mode keybinds
+
+All keypresses will be passed through, except
+`Ctrl+Alt+Escape` which returns you to `DESKTOP` mode.
+
+## Deficiencies
 
 * Uses virtual desktops instead of tags, so only one virtual desktop
   is allowed per window.
@@ -97,7 +227,6 @@ any more DLLs Joshua comes up with.
 
 ## TODO
 
-* Rewrite to avoid being bound to the Apache license
 * Implement tiling mode
 * Implement something like [https://autohotkey.com/boards/viewtopic.php?f=6&t=14881]
 * Implement proper tags

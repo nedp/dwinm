@@ -74,7 +74,7 @@ DWM.hotkeyManager
     ;; TODO R
 
     o::DWM.sendAndInsert("{End}{Enter}")
-    +o::DWM.sendAndInsert("{Up}{End}{Enter}")
+    +o::DWM.sendAndInsert("{Home}{Enter}{Right}")
 
     ;; Delete
     ::X::
@@ -100,7 +100,18 @@ DWM.hotkeyManager
         Send +{End}^x
     return
 
+    ::d^::+{Home}+{Left}^+{Right}^x
+
+    ::cgg::
+        DWM.sendAndInsert("+^{Home}^x")
+    return
+
+    ::cG::
+        DWM.sendAndInsert("+^{End}^x")
+    return
+
     ::dd::
+    ::d_::
         Send {Home}+{End}^x{BackSpace}{Right}
     return
 
@@ -109,7 +120,7 @@ DWM.hotkeyManager
         DWM.sendAndInsert("+{Left}^x")
     return
 
-    s::
+    ::s::
     ::cl::
         DWM.sendAndInsert("+{Right}^x")
     return
@@ -122,7 +133,7 @@ DWM.hotkeyManager
     return
 
     ::cw::
-        DWM.sendAndInsert("+^{Right}^x")
+        DWM.sendAndInsert("+^{Right}{Left}^x")
     return
     ::cb::
         DWM.sendAndInsert("+^{Left}^x")
@@ -132,13 +143,26 @@ DWM.hotkeyManager
         DWM.sendAndInsert("+{Home}^x")
     return
 
-    +C::
+    ::C::
     ::c$::
         DWM.sendAndInsert("+{End}^x")
     return
 
-    +S::
+    ::c^::
+        DWM.sendAndInsert("+{Home}+{Left}^+{Right}^x")
+    return
+
+    ::cgg::
+        DWM.sendAndInsert("+^{Home}^x")
+    return
+
+    ::cG::
+        DWM.sendAndInsert("+^{End}^x")
+    return
+
+    ::S::
     ::cc::
+    ::c_::
         DWM.sendAndInsert("{Home}+{End}^x")
     return
 
@@ -157,29 +181,43 @@ DWM.hotkeyManager
 
     ::y0::+{Home}^c
     ::y$::+{End}^c
+    ::y^::+{Home}+{Left}^+{Right}^c
 
-    ::+y::
+    ::ygg::^+{Home}^c
+    ::yG::^+{End}^c
+
+    ::Y::
     ::yy::
+    ::y_::
         Send {Home}+{End}^c
     return
 
-    ;; History
+    ;; Miscellaneous
     ::u::^z
     ^r::^y
 
+    ::/::^f
+
+    ::J::{End}+^{Right}{Space}
+
     ;; Movement
-    ::h::Left
-    ::j::Down
-    ::k::Up
-    ::l::Right
+    ::h::{Left}
+    ::j::{Down}
+    ::k::{Up}
+    ::l::{Right}
 
     ::b::^{Left}
     ::w::^{Right}
 
     ::0::{Home}
     ::$::{End}
+    ::_::
+    ::^::
+        Send {Home}{Left}^{Right}
+    return
 
-    ::/::^f
+    ::gg::^{Home}
+    ::G::^{End}
 
 
 #If DWM.hasMode(DWM.Modes.INSERT)
