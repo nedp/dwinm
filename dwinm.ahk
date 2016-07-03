@@ -55,9 +55,16 @@ DWM.hotkeyManager
 
 #If DWM.hasMode(DWM.Modes.INSERT)
     ;; Change modes.
-    Escape::DWM.setMode(DWM.Modes.NORMAL)
+    ::kj::
+    ::jk::
+        DWM.setMode(DWM.Modes.NORMAL)
+    return
+
+    ^w::Send +^{Left}^x
+    ^u::Send +{Home}^x
 
 #If DWM.hasMode(DWM.Modes.SELECT)
+    ;; Change modes.
     ~*Escape::
     ~*Enter::
     ~*Space::
@@ -66,13 +73,14 @@ DWM.hotkeyManager
         DWM.setMode(DWM.Modes.DESKTOP)
     return
 
-#If DWM.hasMode(DWM.Modes.NORMAL, DWM.Modes.SELECT)
+    ;; Movement
     h::Left
     j::Down
     k::Up
     l::Right
 
 #If DWM.hasMode(DWM.Modes.PASSTHROUGH)
+    ;; Change modes.
     ^!Escape::DWM.setMode(DWM.Modes.DESKTOP)
 #If
 
@@ -124,6 +132,15 @@ class DWinM {
             clear := this.clear
             SetTimer %clear%, % -this.TOOLTIP_TIMEOUT
         }
+    }
+
+    enterInsertMode() {
+        this.setMode(this.Modes.INSERT)
+    }
+
+    sendAndInsert(sendKeys) {
+        Send %sendKeys%
+        this.enterInsertMode()
     }
 
     hasMode(modes*) {
