@@ -35,8 +35,12 @@ for each desktop.
 The current desktop is highlighted with square brackets.
 The "other" desktop (activated with Alt+Tab) is highlighted with dots.
 
-e.g. ` 1  2 .3. 4  5 [6] 7  8  9 ` indicates that you're on desktop 6 and
-the "other" desktop is desktop 3.
+e.g. ` 1  2 .3. 4  5 [6] 7  8 '9'` indicates that:
+
+* you're on desktop 6;
+* the "other" desktop is desktop 3, access it with Alt+Tab; and
+* the "recent" desktop is desktop 9, return to it by pressing the
+  current desktop's "pick" shortcut, Alt+6.
 
 #### Mode indicator
 
@@ -74,7 +78,7 @@ except `Ctrl+Shift+Escape`, which returns you to `DESKTOP` mode.
 | Alt+s       | Enter `SELECT` mode
 | Alt+Shift+: | Enter `COMMAND` mode
 | Alt+i       | Enter `PASSTHROUGH` mode
-| Alt+(X)     | Change to desktop (X), with (X) is in 1-9
+| Alt+(X)     | Change to desktop (X), with (X) is in 1-9.  Press again to return.
 | Alt+0       | Resynchronise dwinm
 |Alt+Shift+(X)| Send active window to desktop (X), with (X) in 1-9
 | Alt+Tab     | Swap the active and "other" desktop

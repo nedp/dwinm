@@ -14,6 +14,7 @@ class DesktopChanger {
         this.tooltip := tooltip
 
         this.desktop := desktopMapper.getDesktopNumber()
+        this.recentDesktop := (this.desktop == 1) ? 2 : 1
         this.resync()
     }
 
@@ -42,7 +43,12 @@ class DesktopChanger {
      */
     pickDesktop(newDesktop) {
         if (this.desktop != newDesktop) {
+            this.recentDesktop := this.desktop
             this._changeDesktop(newDesktop)
+        } else if (this.desktop != this.recentDesktop) {
+            this.pickDesktop(this.recentDesktop)
+        } else {
+            Logger.warning("The recent desktop is also the current desktop; not switcing")
         }
     }
 
@@ -55,7 +61,9 @@ class DesktopChanger {
     swapAndPickDesktop(newDesktop) {
         Logger.trace("DesktopChanger#swapAndPickDesktop: newDesktop=" newDesktop)
         this.swapDesktops()
-        this.pickDesktop(newDesktop)
+        if (this.desktop != newDesktop) {
+            this._changeDesktop(newDesktop)
+        }
     }
 
     _changeDesktop(newDesktop) {
@@ -76,9 +84,10 @@ class DesktopChanger {
     displayDesktop() {
         message := ""
         loop % this.nDesktops {
-            message .= (A_index == this.desktop)      ? "[" A_Index "]"
-                     : (A_Index == this.otherDesktop) ? "." A_Index "."
-                                                      : " " A_Index " "
+            message .= (A_index == this.desktop)       ? "[" A_Index "]"
+                     : (A_Index == this.otherDesktop)  ? "." A_Index "."
+                     : (A_Index == this.recentDesktop) ? "'" A_Index "'"
+                                                       : " " A_Index " "
         }
         this._displayTooltip(message)
     }
