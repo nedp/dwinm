@@ -35,10 +35,10 @@ DWM.hotkeyManager
     !k::Send !+{Esc}
 
     ;; Use Windows' pauper tiling.
-    !+h::Send #{Left}
-    !+j::Send #{Down}
-    !+k::Send #{Up}
-    !+l::Send #{Right}
+    !+h::SendEvent #{Left}
+    !+j::SendEvent #{Down}
+    !+k::SendEvent #{Up}
+    !+l::SendEvent #{Right}
 
     ;; Close window.
     !w::Send !{F4}
