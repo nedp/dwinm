@@ -251,10 +251,10 @@ DWM.hotkeyManager
     ;; Emacsish bindings for a) easier URL entry and b)
     ;; avoiding accidentally nuking the window with ^w.
 
-    ^f::Right
-    !f::^Right
-    ^b::Left
-    !b::^Left
+    ^f::Send {Right}
+    !f::Send ^{Right}
+    ^b::Send {Left}
+    !b::Send ^{Left}
 
     ^a::Home
     ^e::End
@@ -273,8 +273,8 @@ DWM.hotkeyManager
 
     ^y::^v
 
-    ~Enter::
-    ~Escape::
+    ~*Enter::
+    ~*Escape::
         DWM.setMode(DWM.MODES.DESKTOP)
     return
 
