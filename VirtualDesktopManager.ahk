@@ -1,7 +1,7 @@
 ﻿class VirtualDesktopManager {
     __new()
     {
-        debugger("creating th vdm")
+        Logger.info("Creating the vdm")
         ;https://msdn.microsoft.com/en-us/library/windows/desktop/mt186440(v=vs.85).aspx
         CLSID := "{aa509086-5ca9-4c25-8f95-589d3c07b48a}" ;search VirtualDesktopManager clsid
         IID := "{a5cd92ff-29be-454c-8d04-d82879fb3f1b}" ;search IID_IVirtualDesktopManager
@@ -41,7 +41,7 @@
     ; https://github.com/cocobelgica/AutoHotkey-Util/blob/master/Guid.ahk#L36
     _guidToStr(ByRef VarOrAddress)
     {
-        ;~ debugger(&VarOrAddress " address")
+        Logger.debug(&VarOrAddress " address")
         pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
         VarSetCapacity(sGuid, 78) ; (38 + 1) * 2
         if !DllCall("ole32\StringFromGUID2", "Ptr", pGuid, "Ptr", &sGuid, "Int", 39)

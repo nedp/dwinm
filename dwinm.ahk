@@ -6,7 +6,10 @@
 SetWorkingDir %A_ScriptDir%
 CoordMode ToolTip, Screen
 SetTitleMatchMode RegEx
+SendMode InputThenPlay
 
+Logger.setLevel(Logger.Levels.NONE)
+Logger.tooltip := DWinM.LOGGER_TOOLTIP
 DWM := new DWinM()
 
 DWM.hotkeyManager
@@ -31,6 +34,12 @@ DWM.hotkeyManager
     !j::Send !{Esc}
     !k::Send !+{Esc}
 
+    ;; Use Windows' pauper tiling.
+    !+h::Send #{Left}
+    !+j::Send #{Down}
+    !+k::Send #{Up}
+    !+l::Send #{Right}
+
     ;; Close window.
     !w::Send !{F4}
 
@@ -46,12 +55,6 @@ DWM.hotkeyManager
 #If DWM.hasMode(DWM.Modes.NORMAL)
     ;; Change modes.
     *Escape::DWM.setMode(DWM.Modes.DESKTOP)
-
-    ;; Use Windows' pauper tiling.
-    #h::#Left
-    #j::#Down
-    #k::#Up
-    #l::#Right
 
     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
     ;; Basic hardcoded commands.
@@ -162,10 +165,10 @@ DWM.hotkeyManager
     ^r::^y
 
     ;; Movement
-    ::h::{Left}
-    ::j::{Down}
-    ::k::{Up}
-    ::l::{Right}
+    ::h::Left
+    ::j::Down
+    ::k::Up
+    ::l::Right
 
     ::b::^{Left}
     ::w::^{Right}
@@ -245,6 +248,7 @@ class DWinM {
 
     static DESKTOP_TOOLTIP := {id: 1, x: 0, y: 0}
     static MODE_TOOLTIP := {id: 2, x: 0, y: 20}
+    static LOGGER_TOOLTIP := {id: 3, x: 0, y: 40}
 
     static NUM_DESKTOPS := 9
 
@@ -264,6 +268,9 @@ class DWinM {
     windowMover := new WindowMover()
     hotkeyManager
         := new HotkeyManager(this.desktopChanger, this.windowMover, this)
+
+    __new() {
+    }
 
     resync() {
         this.desktopMapper.resync()
