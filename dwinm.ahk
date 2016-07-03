@@ -22,6 +22,7 @@ DWM.hotkeyManager
     ;; Change modes.
     !s::DWM.setMode(DWM.Modes.SELECT)
     !Escape::DWM.setMode(DWM.Modes.NORMAL)
+    !+;::DWM.setMode(DWM.Modes.COMMAND)
     !i::DWM.setMode(DWM.Modes.PASSTHROUGH)
 
     ;; Browse windows.
@@ -246,13 +247,9 @@ DWM.hotkeyManager
     k::Up
     l::Right
 
-#If DWM.hasMode(DWM.Modes.PASSTHROUGH)
-    ;; Change modes.
-    ^!Escape::DWM.setMode(DWM.Modes.DESKTOP)
-
-#IfWinActive ahk_exe chrome.exe|firefox.exe|explorer.exe
+#If DWM.hasMode(DWM.Modes.COMMAND)
     ;; Emacsish bindings for a) easier URL entry and b)
-    ;; avoiding accidentally nuking windows with ^w.
+    ;; avoiding accidentally nuking the window with ^w.
 
     ^f::Right
     !f::^Right
@@ -262,8 +259,8 @@ DWM.hotkeyManager
     ^a::Home
     ^e::End
 
-    ^n::Down
-    ^p::Up
+    ^n::SendEvent {Down}
+    ^p::SendEvent {Up}
 
     ^h::Send +{Left}^x
     ^w::Send +^{Left}^x
@@ -276,6 +273,30 @@ DWM.hotkeyManager
 
     ^y::^v
 
+    ~Enter::
+    ~Escape::
+        DWM.setMode(DWM.MODES.DESKTOP)
+    return
+
+    ^c::
+        Send {Escape}
+        DWM.setMode(DWM.MODES.DESKTOP)
+    return
+
+#If DWM.hasMode(DWM.Modes.PASSTHROUGH)
+    ;; Change modes.
+    ^!Escape::DWM.setMode(DWM.Modes.DESKTOP)
+
+#IfWinActive ahk_exe chrome.exe|firefox.exe
+    ^w::Send +^{Left}^x
+
+;; Application specific COMMAND mode entry:
+#IfWinActive ahk_exe firefox.exe
+    ~o::
+        if (DWM.hasMode(DWM.Modes.DESKTOP)) {
+            DWM.setMode(DWM.Modes.COMMAND)
+        }
+    return
 #If
 
 class DWinM {
@@ -283,6 +304,7 @@ class DWinM {
                     , NORMAL: "NORMAL"
                     , SELECT : "SELECT"
                     , INSERT: "INSERT"
+                    , COMMAND: "COMMAND"
                     , PASSTHROUGH: "PASSTHROUGH" }
 
     static TOOLTIP_TIMEOUT := 1000

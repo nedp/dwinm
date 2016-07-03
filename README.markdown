@@ -59,6 +59,9 @@ Return to `NORMAL` with `Escape`.
 It's exited by pressing `Enter`, `Escape`, or a few other intuitive keybinds.
 It is optimised for picking items from menus.
 
+`COMMAND` is accessed from `DESKTOP` with `Alt+Shift+:` and
+acts kind of like zle/emacs.
+
 `PASSTHROUGH` is accessed from `DESKTOP` with `Alt+i`,
 it allows all keypresses to pass through unaffected
 except `Ctrl+Shift+Escape`, which returns you to `DESKTOP` mode.
@@ -69,6 +72,7 @@ except `Ctrl+Shift+Escape`, which returns you to `DESKTOP` mode.
 |:-----------:|:--------|
 | Alt+Escape  | Enter `NORMAL` mode
 | Alt+s       | Enter `SELECT` mode
+| Alt+Shift+: | Enter `COMMAND` mode
 | Alt+i       | Enter `PASSTHROUGH` mode
 | Alt+(X)     | Change to desktop (X), with (X) is in 1-9
 | Alt+0       | Resynchronise dwinm
@@ -190,6 +194,29 @@ Select items with basic movements:
 | j   | Down
 | k   | Up
 | l   | Right
+
+### `COMMAND` mode keybinds
+
+| Combination | Command + mnemonic      | Simulated Keys |
+|:-----------:|:-----------------------:|:---------------|
+| Ctrl+F      | *F*orward               | Right
+| Alt+F       | *F*orward word          | Ctrl+Right
+| Ctrl+B      | *B*ack                  | Left
+| Alt+B       | *B*ack word             | Ctrl+Left
+| Ctrl+A      | st*A*rt of line         | Home
+| Ctrl+E      | *E*nd of line           | End
+| Ctrl+N      | *N*ext                  | Down
+| Ctrl+P      | *P*revious              | Up
+| Ctrl+H      | kill last c*H*aracter   | Ctrl+Left, Ctrl+X
+| Ctrl+W      | kill last *W*ord        | Ctrl+Shift+Left, Ctrl+X
+| Ctrl+D      | *D*elete next character | Ctrl+Right, Ctrl+X
+| Alt+D       | *D*elete next word      | Ctrl+Shift+Right, Ctrl+X
+| Ctrl+K      | *K*ill rest of line     | Shift+End, Ctrl+X
+| Ctrl+U      | *U*ndo entire line      | Home, Shift+End, Ctrl+X
+| Ctrl+Y      | un*Y*ank (paste)        | Ctrl+V
+| Ctrl+C      | *C*ancel                | Escape, return to `DESKTOP` mode
+| Enter       | Done (pass through)     | Enter, return to `DESKTOP` mode
+| Escape      | Done (pass through)     | Escape, return to `DESKTOP` mode
 
 ### `PASSTHROUGH` mode keybinds
 
