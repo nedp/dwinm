@@ -46,13 +46,135 @@ DWM.hotkeyManager
 #If DWM.hasMode(DWM.Modes.NORMAL)
     ;; Change modes.
     *Escape::DWM.setMode(DWM.Modes.DESKTOP)
-    i::DWM.setMode(DWM.Modes.INSERT)
 
     ;; Use Windows' pauper tiling.
     #h::#Left
     #j::#Down
     #k::#Up
     #l::#Right
+
+    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+    ;; Basic hardcoded commands.
+    ;; TODO Implement repeat/command/movement composition.
+
+#HotString * c ? z si
+
+    ;; Insertion
+    i::DWM.enterInsertMode()
+    +i::DWM.sendAndInsert("{Home}")
+    a::DWM.sendAndInsert("{Right}")
+    +a::DWM.sendAndInsert("{End}")
+
+    ;; TODO R
+
+    o::DWM.sendAndInsert("{End}{Enter}")
+    +o::DWM.sendAndInsert("{Up}{End}{Enter}")
+
+    ;; Delete
+    ::X::
+    ::dh::
+        Send +{Left}^x
+    return
+
+    ::x::
+    ::dl::
+        Send +{Right}^x
+    return
+
+    ::dj::{Up}{End}+{Down 2}+{End}^x
+    ::dk::{Down}{Home}+{Up 2}+{Home}^x
+
+    ::dw::+^{Right}^x
+    ::db::+^{Left}^x
+
+    ::d0::+{Home}^x
+
+    ::d$::
+    ::D::
+        Send +{End}^x
+    return
+
+    ::dd::
+        Send {Home}+{End}^x{BackSpace}{Right}
+    return
+
+    ;; Change
+    ::ch::
+        DWM.sendAndInsert("+{Left}^x")
+    return
+
+    s::
+    ::cl::
+        DWM.sendAndInsert("+{Right}^x")
+    return
+
+    ::cj::
+        DWM.sendAndInsert("{Up}{End}+{Down 2}+{End}^x{Enter}")
+    return
+    ::ck::
+        DWM.sendAndInsert("{Up}{Home}+{Down}+{End}^x")
+    return
+
+    ::cw::
+        DWM.sendAndInsert("+^{Right}^x")
+    return
+    ::cb::
+        DWM.sendAndInsert("+^{Left}^x")
+    return
+
+    ::c0::
+        DWM.sendAndInsert("+{Home}^x")
+    return
+
+    +C::
+    ::c$::
+        DWM.sendAndInsert("+{End}^x")
+    return
+
+    +S::
+    ::cc::
+        DWM.sendAndInsert("{Home}+{End}^x")
+    return
+
+    ;; Yank and Put
+    ::p::^v
+    ::P::{Left}^v
+
+    ::yh::+{Left}^c
+    ::yk::+{Right}^c
+
+    ::yj::{Up}{End}+{Down 2}+{End}^c
+    ::yk::{Down}{Home}+{Up 2}+{Home}^c
+
+    ::yw::+^{Right}^c
+    ::yb::+^{Left}^c
+
+    ::y0::+{Home}^c
+    ::y$::+{End}^c
+
+    ::+y::
+    ::yy::
+        Send {Home}+{End}^c
+    return
+
+    ;; History
+    ::u::^z
+    ^r::^y
+
+    ;; Movement
+    ::h::{Left}
+    ::j::{Down}
+    ::k::{Up}
+    ::l::{Right}
+
+    ::b::^{Left}
+    ::w::^{Right}
+
+    ::0::{Home}
+    ::$::{End}
+
+    ::/::^f
+
 
 #If DWM.hasMode(DWM.Modes.INSERT)
     ;; Change modes.
