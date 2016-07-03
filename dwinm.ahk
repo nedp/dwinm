@@ -243,25 +243,24 @@ class DWinM {
 
     static TOOLTIP_TIMEOUT := 1000
 
-    mode := this.Modes.DESKTOP
-
-    static DESKTOP_TOOLTIP := 1
-    static MODE_TOOLTIP := 2
-
-    static DESKTOP_TOOLTIP_X := 62
-    static MODE_TOOLTIP_X := 81
+    static DESKTOP_TOOLTIP := {id: 1, x: 0, y: 0}
+    static MODE_TOOLTIP := {id: 2, x: 0, y: 20}
 
     static NUM_DESKTOPS := 9
 
-    Functions := { RESYNC: "resync" }
+    static Functions := { RESYNC: "resync" }
+
+    tooltip := this.MODE_TOOLTIP
+
+    mode := this.Modes.DESKTOP
 
     nDesktops := this.NUM_DESKTOPS
 
     virtualDesktopManager := new VirtualDesktopManager()
     desktopMapper := new DesktopMapper(this.virtualDesktopManager)
 
-    desktopChanger := new DesktopChanger(this, this.desktopMapper
-        , {id: this.DESKTOP_TOOLTIP, x: this.DESKTOP_TOOLTIP_X})
+    desktopChanger
+        := new DesktopChanger(this, this.desktopMapper, this.DESKTOP_TOOLTIP)
     windowMover := new WindowMover()
     hotkeyManager
         := new HotkeyManager(this.desktopChanger, this.windowMover, this)
@@ -276,7 +275,7 @@ class DWinM {
     setMode(mode) {
         this.mode := mode
 
-        ToolTip %mode% mode, this.MODE_TOOLTIP_X, 0, this.MODE_TOOLTIP
+        ToolTip %mode% mode, this.tooltip.x, this.tooltip.y, this.tooltip.id
 
         if (mode == this.Modes.DESKTOP) {
             clear := this.clear
@@ -305,7 +304,7 @@ class DWinM {
 
     _clearTooltip() {
         if (this.mode == this.Modes.DESKTOP) {
-            ToolTip, , , , this.MODE_TOOLTIP
+            ToolTip, , , , this.tooltip.id
         }
     }
 }

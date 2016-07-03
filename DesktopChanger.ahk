@@ -23,7 +23,8 @@ class DesktopChanger {
     }
 
     resync(keyCombo := "") {
-        ToolTip Synchronising..., 0, 0, this.tooltipNumber
+        ToolTip Synchronising...
+            , this.tooltip.x, this.tooltip.y, this.tooltip.id
 
         this.nDesktops := this._resetDesktopCount()
         if (this.nDesktops < this.desktop) {
@@ -121,6 +122,6 @@ class DesktopChanger {
     }
 
     _displayTooltip(message) {
-        ToolTip %message%, (this.tooltip.x), 0, (this.tooltip.id)
+        ToolTip %message%, this.tooltip.x, this.tooltip.y, this.tooltip.id
     }
 }
