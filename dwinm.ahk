@@ -8,13 +8,14 @@ CoordMode ToolTip, Screen
 SetTitleMatchMode RegEx
 SendMode InputThenPlay
 
-Logger.setLevel(Logger.Levels.NONE)
+Logger.setLevel(Logger.Levels.WARNING)
 Logger.tooltip := DWinM.LOGGER_TOOLTIP
 DWM := new DWinM()
 
 DWM.hotkeyManager
     .swapDesktops("!Tab")
     .pickDesktop("!")
+    .swapAndPickDesktop("^!")
     .moveWindowToDesktop("!+")
     .resync("!0")
 

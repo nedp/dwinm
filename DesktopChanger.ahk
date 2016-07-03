@@ -3,7 +3,8 @@ class DesktopChanger {
     static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
 
     Functions := { PICK: "pickDesktop"
-                 , SWAP: "swapDesktops" }
+                 , SWAP: "swapDesktops"
+                 , SWAP_PICK: "swapAndPickDesktop" }
 
     otherDesktop := 1
 
@@ -36,12 +37,25 @@ class DesktopChanger {
         this.displayDesktop()
     }
 
-    /* Swap to the given virtual desktop number.
+    /*
+     * Swap to the given virtual desktop number.
      */
     pickDesktop(newDesktop) {
         if (this.desktop != newDesktop) {
             this._changeDesktop(newDesktop)
         }
+    }
+
+    /*
+     * Swap to the other desktop, then pick the specified desktop.
+     *
+     * Useful for quickly checking a desktop, then Alt+Tabbing back,
+     * if you don't need to keep the preexisting "other" desktop.
+     */
+    swapAndPickDesktop(newDesktop) {
+        Logger.trace("DesktopChanger#swapAndPickDesktop: newDesktop=" newDesktop)
+        this.swapDesktops()
+        this.pickDesktop(newDesktop)
     }
 
     _changeDesktop(newDesktop) {

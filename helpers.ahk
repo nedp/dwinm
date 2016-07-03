@@ -13,9 +13,12 @@ class Logger {
                      , ERROR: 1, 1: "ERROR"
                      , WARNING: 2, 2: "WARNING"
                      , INFO: 3, 3: "INFO"
-                     , DEBUG: 4, 4: "DEBUG" }
+                     , DEBUG: 4, 4: "DEBUG"
+                     , TRACE: 5, 5: "TRACE" }
 
     static level := Logger.Levels.DEBUG
+
+    static log := "Reload dwinm to clear this log:"
 
     /*
      * Sets the maximum level for logging.
@@ -24,13 +27,13 @@ class Logger {
      */
     setLevel(level) {
         Logger.level := level
+        this.log .= "`nLogging level set to " this.Levels[level]
     }
 
     /*
      * Logs a message at the specified level, if it is below Logger.level.
      */
     logAtLevel(level, message) {
-        static log := ""
         if (level > Logger.level) {
             return
         }
@@ -38,11 +41,9 @@ class Logger {
         time := ""
         FormatTime time, A_Now, yyyy-MM-dd HH:mm:ss
 
-        log .= time " " this.Levels[level] ": " message
+        this.log .= "`n" time " " this.Levels[level] ": " message
 
-        ToolTip %log%, this.tooltip.x, this.tooltip.y, this.tooltip.id
-
-        log .= "`n"
+        ToolTip % this.log, this.tooltip.x, this.tooltip.y, this.tooltip.id
 
         return
     }
@@ -86,10 +87,19 @@ class Logger {
     /*
      * Logs a message at the DEBUG level.
      *
-     * Should be used for fine-grain debugging information.
+     * Should be used for debugging information.
      */
     debug(message) {
         Logger.logAtLevel(Logger.Levels.DEBUG, message)
+    }
+
+    /*
+     * Logs a message at the TRACE level.
+     *
+     * Should be used for tracing execution while debugging.
+     */
+    trace(message) {
+        Logger.logAtLevel(Logger.Levels.TRACE, message)
     }
 }
 

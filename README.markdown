@@ -76,8 +76,9 @@ except `Ctrl+Shift+Escape`, which returns you to `DESKTOP` mode.
 | Alt+i       | Enter `PASSTHROUGH` mode
 | Alt+(X)     | Change to desktop (X), with (X) is in 1-9
 | Alt+0       | Resynchronise dwinm
-| Alt+Shift+(X) | Send active window to desktop (X), with (X) in 1-9
-| Alt+Tab     | Swap between the active desktop and the other desktop
+|Alt+Shift+(X)| Send active window to desktop (X), with (X) in 1-9
+| Alt+Tab     | Swap the active and "other" desktop
+| Ctrl+Alt+(X)| Swap the active and "other" desktop, then change to desktop (X)
 | Ctrl+Alt+Tab| Enter `SELECT` mode for the window browser
 | Win+Tab     | Enter `SELECT` mode and bring up the task view
 | Alt+j       | Cycle down the window stack, like Alt+Escape

@@ -24,7 +24,7 @@ class HotkeyManager {
     }
 
     /*
-     * Set up hotkeys to move the active window to target desktops.
+     * Set up hotkeys to pick another desktop.
      *
      * Sets up `this.nDesktops` hotkeys of the form `prefix<N>`,
      * where <N> is a number key.
@@ -32,6 +32,25 @@ class HotkeyManager {
     pickDesktop(prefix) {
         object := this.desktopChanger
         method := object.Functions.PICK
+
+        Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
+        this._setUpNumberedHotkey(prefix, object, method)
+        Hotkey If
+
+        return this
+    }
+
+    /*
+     * Set up hotkeys to swap to the 'other' desktop and pick a new desktop.
+     *
+     * Sets up `this.nDesktops` hotkeys of the form `prefix<N>`,
+     * where <N> is a number key.
+     */
+    swapAndPickDesktop(prefix) {
+        Logger.trace("HotkeyManager#swapAndPickDesktop: prefix=" prefix)
+
+        object := this.desktopChanger
+        method := object.Functions.SWAP_PICK
 
         Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         this._setUpNumberedHotkey(prefix, object, method)
@@ -79,16 +98,19 @@ class HotkeyManager {
     ;; the argument for N=0 will be 10.
     _setUpNumberedHotkey(prefix, object, methodName) {
         static modKeyRegex := "[#!^+<>*~$]*"
-        if (!RegExMatch(prefix, modKeyRegex)) {
+        static alreadyHasAmpersand := ".*&\s*^"
+        if (!RegExMatch(prefix, modKeyRegex "|" alreadyHasAmpersand)) {
             prefix .= " & "
         }
         loop % this.dwm.nDesktops > 9 ? 9 : this.dwm.nDesktops {
             key := prefix . A_Index
+            Logger.trace("HotkeyManager#_setUpNumberedHotkey: Adding " key "->" methodName "(" A_Index ")")
             callback := ObjBindMethod(object, methodName, A_Index)
             Hotkey, %key%, %callback%, On, 1
         }
         if (this.dwm.nDesktops >= 10) {
             key := prefix . 0
+            Logger.trace("HotkeyManager#_setUpNumberedHotkey: Adding " key "->" methodName "(0)")
             callback := ObjBindMethod(object, methodName, 10)
             Hotkey %key%, %callback%, On, 1
         }
