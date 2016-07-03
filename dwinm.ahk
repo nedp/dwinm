@@ -30,6 +30,9 @@ DWM.hotkeyManager
         DWM.setMode(DWM.Modes.SELECT)
     return
 
+    ;; Browse windows and desktops.
+    ~#Tab::DWM.setMode(DWM.Modes.SELECT)
+
     ;; Cycle windows.
     !j::Send !{Esc}
     !k::Send !+{Esc}
