@@ -5,6 +5,7 @@
 
 SetWorkingDir %A_ScriptDir%
 CoordMode ToolTip, Screen
+SetTitleMatchMode RegEx
 
 DWM := new DWinM()
 
@@ -82,6 +83,33 @@ DWM.hotkeyManager
 #If DWM.hasMode(DWM.Modes.PASSTHROUGH)
     ;; Change modes.
     ^!Escape::DWM.setMode(DWM.Modes.DESKTOP)
+
+#IfWinActive ahk_exe chrome.exe|firefox.exe|explorer.exe
+    ;; Emacsish bindings for a) easier URL entry and b)
+    ;; avoiding accidentally nuking windows with ^w.
+
+    ^f::Right
+    !f::^Right
+    ^b::Left
+    !b::^Left
+
+    ^a::Home
+    ^e::End
+
+    ^n::Down
+    ^p::Up
+
+    ^h::Send +{Left}^x
+    ^w::Send +^{Left}^x
+
+    ^d::Send +{Right}^x
+    !d::Send +^{Right}^x
+
+    ^k::Send +{End}^x
+    ^u::Send {Home}+{End}^x
+
+    ^y::^v
+
 #If
 
 class DWinM {
