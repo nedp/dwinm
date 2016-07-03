@@ -60,9 +60,11 @@ class DesktopChanger {
     }
 
     displayDesktop() {
-        message := this.desktop
-        if (this.nDesktops != this.dwm.nDesktops) {
-            message .= "/" . this.nDesktops
+        message := ""
+        loop % this.nDesktops {
+            message .= (A_index == this.desktop)      ? "[" A_Index "]"
+                     : (A_Index == this.otherDesktop) ? "." A_Index "."
+                                                      : " " A_Index " "
         }
         this._displayTooltip(message)
     }
