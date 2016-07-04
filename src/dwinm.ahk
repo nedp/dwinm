@@ -67,6 +67,8 @@ DWM.hotkeyManager
 
     ;; Reload dwinm.
     !^q::
+        Suspend
+        Critical
         if (A_IsCompiled) {
             ;; If the application is compiled, reloading won't actually
             ;; load configuration changes, so we'll need to exit,
@@ -360,17 +362,29 @@ class DWinM {
     hotkeyManager
         := new HotkeyManager(this.desktopChanger, this.windowMover, this)
 
-    __new() {
-    }
-
     resync() {
+        wasCritical := A_IsCritical
+        Critical
+        ;; We suspend hotkeys here but not in most actions because
+        ;; we don't expect people to try to queue up commands during
+        ;; a resync, but they may rapidly queue up commands in
+        ;; normal execution.
+        wasSuspended := A_IsSuspended
+        Suspend
+
         this.desktopMapper.resync()
         this.desktopChanger.resync()
         this.windowMover.resync()
+
+        Suspend %wasSuspended%
+        Critical %wasCritical%
     }
 
     clear := ObjBindMethod(this, "_clearTooltip")
     setMode(mode) {
+        wasCritical := A_IsCritical
+        Critical
+
         this.mode := mode
 
         ToolTip %mode% mode, this.tooltip.x, this.tooltip.y, this.tooltip.id
@@ -379,6 +393,8 @@ class DWinM {
             clear := this.clear
             SetTimer %clear%, % -this.TOOLTIP_TIMEOUT
         }
+
+        Critical %wasCritical%
     }
 
     enterInsertMode() {
@@ -401,9 +417,14 @@ class DWinM {
     }
 
     _clearTooltip() {
+        wasCritical := A_IsCritical
+        Critical
+
         if (this.mode == this.Modes.DESKTOP) {
             ToolTip, , , , this.tooltip.id
         }
+
+        Critical %wasCritical%
     }
 }
 

@@ -24,6 +24,9 @@
      * returning zero on success or an error code on failure.
      */
     moveActiveToDesktop(desktop) {
+        wasCritical := A_IsCritical
+        Critical
+
         desktop -= 1 ;; The dll is zero-indexed.
         hwnd := WinExist("A")
 
@@ -37,6 +40,8 @@
 
         refocus()
 
+        Critical %wasCritical%
+
         return ErrorLevel
     }
 
@@ -46,6 +51,9 @@
     resync := this.__new
 
     _startUpDLLInjectors() {
+        wasCritical := A_IsCritical
+        Critical
+
         loop % this.MAX_RESYNC_ATTEMPTS {
             ;; Use guards so we only call dlls which we haven't called already.
             if (!this.has32bit) {
@@ -57,8 +65,11 @@
                 this.has64bit := DllCaller.callDll(64)
             }
             if (this.has32bit && this.has64bit) {
-                return
+                goto cleanup
             }
         }
+
+        cleanup:
+            Critical %wasCritical%
     }
 }

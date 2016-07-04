@@ -19,12 +19,20 @@ class DesktopChanger {
     }
 
     swapDesktops(keyCombo := "") {
+        wasCritical := A_IsCritical
+        Critical
+
         otherDesktop := this.otherDesktop
         this.otherDesktop := this.desktop
         this.pickDesktop(otherDesktop)
+
+        Critical %wasCritical%
     }
 
     resync(keyCombo := "") {
+        wasCritical := A_IsCritical
+        Critical
+
         ToolTip Synchronising...
             , this.tooltip.x, this.tooltip.y, this.tooltip.id
 
@@ -35,13 +43,19 @@ class DesktopChanger {
         this.desktop := this._resetCurrentDesktop()
 
         refocus()
+
         this.displayDesktop()
+
+        Critical %wasCritical%
     }
 
     /*
      * Swap to the given virtual desktop number.
      */
     pickDesktop(newDesktop) {
+        wasCritical := A_IsCritical
+        Critical
+
         if (this.desktop != newDesktop) {
             this.recentDesktop := this.desktop
             this._changeDesktop(newDesktop)
@@ -50,6 +64,8 @@ class DesktopChanger {
         } else {
             Logger.warning("The recent desktop is also the current desktop; not switcing")
         }
+
+        Critical %wasCritical%
     }
 
     /*
@@ -59,11 +75,16 @@ class DesktopChanger {
      * if you don't need to keep the preexisting "other" desktop.
      */
     swapAndPickDesktop(newDesktop) {
+        wasCritical := A_IsCritical
+        Critical
+
         Logger.trace("DesktopChanger#swapAndPickDesktop: newDesktop=" newDesktop)
         this.swapDesktops()
         if (this.desktop != newDesktop) {
             this._changeDesktop(newDesktop)
         }
+
+        Critical %wasCritical%
     }
 
     _changeDesktop(newDesktop) {
