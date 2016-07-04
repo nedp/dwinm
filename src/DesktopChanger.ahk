@@ -19,14 +19,18 @@ class DesktopChanger {
     }
 
     swapDesktops(keyCombo := "") {
+        Logger.trace("DesktopChanger#swapDesktops: entry")
         wasCritical := A_IsCritical
         Critical
 
         otherDesktop := this.otherDesktop
         this.otherDesktop := this.desktop
-        this.pickDesktop(otherDesktop)
+        this._changeDesktop(otherDesktop)
+
+        this.displayDesktop()
 
         Critical %wasCritical%
+        Logger.trace("DesktopChanger#swapDesktops: exit")
     }
 
     resync(keyCombo := "") {
@@ -62,26 +66,40 @@ class DesktopChanger {
         } else if (this.desktop != this.recentDesktop) {
             this.pickDesktop(this.recentDesktop)
         } else {
-            Logger.warning("The recent desktop is also the current desktop; not switcing")
+            Logger.debug("the recent desktop is also the current desktop; not switching")
         }
 
         Critical %wasCritical%
     }
 
     /*
-     * Swap to the other desktop, then pick the specified desktop.
+     * Hard pick the specified desktop.
      *
-     * Useful for quickly checking a desktop, then Alt+Tabbing back,
-     * if you don't need to keep the preexisting "other" desktop.
+     * This leaves the "recent" desktop unchanged, but sets the "other"
+     * desktop to the original desktop instead.
+     *
+     * Useful for activating a desktop when you want to keep your
+     * recent desktop but you don't care about your preexisting "other"
+     * desktop.
      */
     swapAndPickDesktop(newDesktop) {
         wasCritical := A_IsCritical
         Critical
 
-        Logger.trace("DesktopChanger#swapAndPickDesktop: newDesktop=" newDesktop)
-        this.swapDesktops()
+        ;; If we aren't already on the desired desktop.
         if (this.desktop != newDesktop) {
+            ;; Push out the old "other" desktop.
+            this.otherDesktop := this.desktop
+
+            ;; Pick the new desktop, but don't return if it's the same.
             this._changeDesktop(newDesktop)
+
+            Logger.trace("hardPickDesktop: recentDesktop = "
+                        . this.recentDesktop)
+            Logger.trace("hardPickDesktop: currentDesktop = "
+                        . this.desktop)
+
+            this.displayDesktop()
         }
 
         Critical %wasCritical%
