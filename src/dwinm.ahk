@@ -66,7 +66,16 @@ DWM.hotkeyManager
     !Space::Send ^{Escape}
 
     ;; Reload dwinm.
-    !^q::Reload
+    !^q::
+        if (A_IsCompiled) {
+            ;; If the application is compiled, reloading won't actually
+            ;; load configuration changes, so we'll need to exit,
+            ;; and recompile, and rerun.
+            ExitApp
+        } else {
+            Reload
+        }
+    return
 
 #If DWM.hasMode(DWM.Modes.NORMAL)
     ;; Change modes.
