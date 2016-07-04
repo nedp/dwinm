@@ -1,7 +1,0 @@
-PASS: NumberTestSuite.Test_Division 
-PASS: NumberTestSuite.Test_Sum 
-PASS: NumberTestSuite.Negatives.Test_Division 
-PASS: NumberTestSuite.Negatives.Test_Sum 
-PASS: StringTestSuite.Test_Concat 
-PASS: StringTestSuite.Test_ExpectedException_Success 
-PASS: StringTestSuite.Test_Substring 
