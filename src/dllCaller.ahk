@@ -1,8 +1,4 @@
-﻿/*
- * Original work Copyright 2016 Joshua Graham
- * Modified work Copyright 2016 Ned Pummeroy
- */
-parentPID = %1%
+﻿parentPID = %1%
 32or64 = %2%
 
 WH_GETMESSAGE := 3
@@ -10,10 +6,10 @@ WH_GETMESSAGE := 3
 SetWorkingDir %A_ScriptDir%
 
 if (parentPID && 32or64) {
-    libraryFileName := "hook-" 32or64 ".dll"
+    libraryFileName := "..\dll\hook-" 32or64 ".dll"
 
     ;; Load the custom dll
-    libraryHandle := DllCall("LoadLibrary", "Str", "hook-" 32or64 ".dll", "Ptr")
+    libraryHandle := DllCall("LoadLibrary", "Str", libraryFileName, "Ptr")
 
     ;; Get the address of the move desktop callback
     moveDesktopHookHandle := DllCall("GetProcAddress", Ptr, libraryHandle

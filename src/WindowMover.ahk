@@ -63,12 +63,12 @@
 
             ;; Use guards so we only start processes which aren't already running.
             if (!this.32BitPid) {
-                run, AutoHotkeyU32.exe dll/dllCaller.ahk %myPID% 32,
+                run, AutoHotkeyU32.exe ./dllCaller.ahk %myPID% 32,
                     , useerrorlevel, pid
                 this.32BitPid := pid
             }
             if (!this.64BitPid) {
-                run, AutoHotkeyU64.exe dll/dllCaller.ahk %myPID% 64,
+                run, AutoHotkeyU64.exe ./dllCaller.ahk %myPID% 64,
                     , useerrorlevel, pid
                 this.64BitPID := pid
             }
