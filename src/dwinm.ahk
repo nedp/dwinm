@@ -427,5 +427,3 @@ class DWinM {
         Critical %wasCritical%
     }
 }
-
-#InputLevel 0
