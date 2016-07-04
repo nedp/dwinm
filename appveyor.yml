@@ -3,7 +3,8 @@ version: 0.0.{build}-{branch}
 install:
   - cinst autohotkey.install
 
-build: off
+build_script:
+  - build.bat
 
 before_test:
   - cmd: cd tests
