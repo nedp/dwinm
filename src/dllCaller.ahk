@@ -1,34 +1,41 @@
-﻿parentPID = %1%
-32or64 = %2%
+﻿/*
+ * Calls DLLs for moving windows between desktops.
+ */
+class DllCaller {
+    callDll(nBits) {
+        static WH_GETMESSAGE := 3
 
-WH_GETMESSAGE := 3
+        if (!nBits) {
+            Logger.error("DllCaller#callDll: Invalid arg! Need either 64 or 32")
+            return false
+        }
 
-SetWorkingDir %A_ScriptDir%
+        libraryFileName := "..\dll\hook-" nBits ".dll"
 
-if (parentPID && 32or64) {
-    libraryFileName := "..\dll\hook-" 32or64 ".dll"
+        ;; Load the custom dll
+        libraryHandle := DllCall("LoadLibrary", "Str", libraryFileName, "Ptr")
+        if (ErrorLevel != 0) {
+            Logger.error("DllCaller#callDll: Failed to load library: " A_LastError)
+            return false
+        }
 
-    ;; Load the custom dll
-    libraryHandle := DllCall("LoadLibrary", "Str", libraryFileName, "Ptr")
+        ;; Get the address of the move desktop callback
+        moveDesktopHookHandle := DllCall("GetProcAddress", Ptr, libraryHandle
+            , Astr, "GetMsgProc", "Ptr")
+        if (ErrorLevel != 0) {
+            Logger.error("DllCaller#callDll: Failed to get hook handle: " A_LastError)
+            return false
+        }
 
-    ;; Get the address of the move desktop callback
-    moveDesktopHookHandle := DllCall("GetProcAddress", Ptr, libraryHandle
-        , Astr, "GetMsgProc", "Ptr")
+        ;; Hook up the move desktop callback on WH_GETMESSAGE messages
+        DllCall("user32.dll\SetWindowsHookEx", "Int"
+            , WH_GETMESSAGE, "Ptr", moveDesktopHookHandle, "Ptr"
+            , libraryHandle, "Ptr", 0)
+        if (ErrorLevel != 0) {
+            Logger.error("DllCaller#callDll: Failed to set up callback: " A_LastError)
+            return false
+        }
 
-    ;; Hook up the move desktop callback on WH_GETMESSAGE messages
-    ok := DllCall("user32.dll\SetWindowsHookEx", "Int"
-        , WH_GETMESSAGE, "Ptr", moveDesktopHookHandle, "Ptr"
-        , libraryHandle, "Ptr", 0)
-    if (!ok) {
-        MsgBox The call did not succeed:`n %A_LastError%
-        ExitApp
+        return true
     }
-
-    Process, waitclose, % parentPID
-} else {
-    MsgBox "Invalid command line args!`n"
-       . "Need 1) a PID and 2) either '64' or '32'.`n"
-       . %0% " args were recieved."
 }
-
-ExitApp

@@ -1,3 +1,13 @@
+#Include %A_ScriptDir%/helpers.ahk
+
+#Include %A_ScriptDir%/DesktopChanger.ahk
+#Include %A_ScriptDir%/DesktopMapper.ahk
+#Include %A_ScriptDir%/DllCaller.ahk
+#Include %A_ScriptDir%/HotkeyManager.ahk
+#Include %A_ScriptDir%/MonitorMapper.ahk
+#include %A_ScriptDir%/VirtualDesktopManager.ahk
+#Include %A_ScriptDir%/WindowMover.ahk
+
 #UseHook On
 #NoEnv
 #Warn
@@ -388,12 +398,3 @@ class DWinM {
 }
 
 #InputLevel 0
-
-#Include %A_ScriptDir%/helpers.ahk
-
-#Include %A_ScriptDir%/DesktopChanger.ahk
-#Include %A_ScriptDir%/DesktopMapper.ahk
-#Include %A_ScriptDir%/HotkeyManager.ahk
-#Include %A_ScriptDir%/MonitorMapper.ahk
-#include %A_ScriptDir%/VirtualDesktopManager.ahk
-#Include %A_ScriptDir%/WindowMover.ahk

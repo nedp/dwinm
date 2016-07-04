@@ -1,8 +1,8 @@
 ﻿class WindowMover {
     static MAX_RESYNC_ATTEMPTS := 3
 
-    static 32BitPID
-    static 64BitPID
+    static has32bit
+    static has64bit
 
     Functions := { MOVE_ACTIVE: "moveActiveToDesktop" }
 
@@ -16,19 +16,7 @@
      * Check whether both the 32 and 64 bit dll injectors are available.
      */
     isAvailable() {
-        if (this.32BitPID) {
-            process exist, % this.32BitPID
-            if (ErrorLevel == 0) {
-                this.32BitPID := false
-            }
-        }
-        if (this.64BitPID) {
-            process exist, % this.64BitPID
-            if (ErrorLevel == 0) {
-                this.64BitPID := false
-            }
-        }
-        return !!this.32BitPID && !!this.64BitPID
+        return this.has32bit && this.has64bit
     }
 
     /*
@@ -59,20 +47,16 @@
 
     _startUpDLLInjectors() {
         loop % this.MAX_RESYNC_ATTEMPTS {
-            myPID := DllCall("GetCurrentProcessId")
-
-            ;; Use guards so we only start processes which aren't already running.
-            if (!this.32BitPid) {
-                run, AutoHotkeyU32.exe ./dllCaller.ahk %myPID% 32,
-                    , useerrorlevel, pid
-                this.32BitPid := pid
+            ;; Use guards so we only call dlls which we haven't called already.
+            if (!this.has32bit) {
+                Logger.info("Starting the hook-32.dll")
+                this.has32bit := DllCaller.callDll(32)
             }
-            if (!this.64BitPid) {
-                run, AutoHotkeyU64.exe ./dllCaller.ahk %myPID% 64,
-                    , useerrorlevel, pid
-                this.64BitPID := pid
+            if (!this.has64bit) {
+                Logger.info("Starting the hook-64.dll")
+                this.has64bit := DllCaller.callDll(64)
             }
-            if (this.32BitPid && this.64BitPid) {
+            if (this.has32bit && this.has64bit) {
                 return
             }
         }
