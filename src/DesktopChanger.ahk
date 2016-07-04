@@ -60,7 +60,9 @@ class DesktopChanger {
             this.recentDesktop := this.desktop
             this._changeDesktop(newDesktop)
         } else if (this.desktop != this.recentDesktop) {
-            this.pickDesktop(this.recentDesktop)
+            recentDesktop := this.recentDesktop
+            this.recentDesktop := this.desktop
+            this._changeDesktop(recentDesktop)
         } else {
             Logger.debug("the recent desktop is also the current desktop; not switching")
         }
