@@ -9,9 +9,16 @@ class DesktopChanger {
         this.desktopMapper := desktopMapper
         this.tooltip := tooltip
 
+        wasCritical := A_IsCritical
+        Critical
+
         this.desktop := desktopMapper.getDesktopNumber()
-        this.recentDesktop := (this.desktop == 1) ? 2 : 1
-        this.resync()
+        this.recentDesktop := 1
+
+        this.nDesktops := this._resetDesktopCount()
+        this.displayDesktop()
+
+        Critical %wasCritical%
     }
 
     swapDesktops(keyCombo := "") {
@@ -163,7 +170,12 @@ class DesktopChanger {
     }
 
     _resetCurrentDesktop() {
+        actualDesktop := this.desktopMapper.getDesktopNumber()
         loop % this.MAX_RETRIES {
+            if (actualDesktop == this.desktop) {
+                return actualDesktop
+            }
+
             Sleep this.RESYNC_DELAY
 
             slowSend("^#{Left " this.nDesktops "}")
@@ -176,9 +188,6 @@ class DesktopChanger {
             Sleep this.RESYNC_DELAY
 
             actualDesktop := this.desktopMapper.getDesktopNumber()
-            if (actualDesktop == this.desktop) {
-                return actualDesktop
-            }
         }
         return actualDesktop
     }
