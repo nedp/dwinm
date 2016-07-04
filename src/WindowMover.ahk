@@ -4,8 +4,6 @@
     static has32bit
     static has64bit
 
-    Functions := { MOVE_ACTIVE: "moveActiveToDesktop" }
-
     __new() {
         if (!this.isAvailable()) {
             this._startUpDLLInjectors()

@@ -345,8 +345,6 @@ class DWinM {
 
     static NUM_DESKTOPS := 9
 
-    static Functions := { RESYNC: "resync" }
-
     tooltip := this.MODE_TOOLTIP
 
     mode := this.Modes.DESKTOP

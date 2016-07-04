@@ -2,10 +2,6 @@ class DesktopChanger {
     static MAX_RETRIES := 3 ;; Maximum number of attempts to resync.
     static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
 
-    Functions := { PICK: "pickDesktop"
-                 , SWAP: "swapDesktops"
-                 , SWAP_PICK: "swapAndPickDesktop" }
-
     otherDesktop := 1
 
     __new(dwm, desktopMapper, tooltip) {
@@ -82,7 +78,7 @@ class DesktopChanger {
      * recent desktop but you don't care about your preexisting "other"
      * desktop.
      */
-    swapAndPickDesktop(newDesktop) {
+    hardPickDesktop(newDesktop) {
         wasCritical := A_IsCritical
         Critical
 

@@ -14,7 +14,7 @@ class HotkeyManager {
      */
     moveWindowToDesktop(prefix) {
         object := this.windowMover
-        method := object.Functions.MOVE_ACTIVE
+        method := "moveActiveToDesktop"
 
         Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         this._setUpNumberedHotkey(prefix, object, method)
@@ -31,7 +31,7 @@ class HotkeyManager {
      */
     pickDesktop(prefix) {
         object := this.desktopChanger
-        method := object.Functions.PICK
+        method := "pickDesktop"
 
         Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         this._setUpNumberedHotkey(prefix, object, method)
@@ -50,7 +50,7 @@ class HotkeyManager {
         Logger.trace("HotkeyManager#swapAndPickDesktop: prefix=" prefix)
 
         object := this.desktopChanger
-        method := object.Functions.SWAP_PICK
+        method := "hardPickDesktop"
 
         Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         this._setUpNumberedHotkey(prefix, object, method)
@@ -64,7 +64,7 @@ class HotkeyManager {
      */
     swapDesktops(hotkeyKey) {
         object := this.desktopChanger
-        method := object.Functions.SWAP
+        method := "swapDesktops"
 
         Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         callback := ObjBindMethod(object, method)
@@ -79,7 +79,7 @@ class HotkeyManager {
      */
     resync(hotkeyKey) {
         object := this.dwm
-        method := object.Functions.RESYNC
+        method := "resync"
 
         Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
         callback := ObjBindMethod(object, method)
