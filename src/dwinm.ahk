@@ -376,7 +376,9 @@ class DWinM {
         this.desktopChanger.resync()
         this.windowMover.resync()
 
-        Suspend %wasSuspended%
+        if (!wasSuspended) {
+            Suspend Off
+        }
         Critical %wasCritical%
     }
 
