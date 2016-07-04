@@ -2,6 +2,14 @@
 
 A pauper's dwm for Windows 10.
 
+## Builds
+
+Most recent:
+[![Build status](https://ci.appveyor.com/api/projects/status/xb5mv5qimhl47bfc?svg=true)](https://ci.appveyor.com/project/nedp/dwinm)
+
+`master`:
+[![Build status](https://ci.appveyor.com/api/projects/status/xb5mv5qimhl47bfc/branch/master?svg=true)](https://ci.appveyor.com/project/nedp/dwinm/branch/master)
+
 ## Philosophy
 
 dwinm is based on three core ideas:
