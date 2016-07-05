@@ -75,20 +75,24 @@
         while (!this.32BitPid && A_Index <= this.MAX_RESYNC_ATTEMPTS) {
             Logger.info(this.__class ": creating 32bit dll")
 
-            Run %path%\AutoHotkeyU32.exe %LOADER% %myPID% 32, useerrorlevel, pid
+            Run %path%\AutoHotkeyU32.exe %LOADER% %myPID% 32, %A_ScriptDir%
+                , useerrorlevel, pid
             if (ErrorLevel) {
                 Logger.debug("Error starting 32bit dllCaller: " A_LastError)
             }
             this.32BitPid := pid
+            Logger.info("32bit hook created with pid: " this.32BitPid)
         }
 
         while (!this.64BitPid && A_Index <= this.MAX_RESYNC_ATTEMPTS) {
             Logger.info(this.__class ": creating 64bit dll")
-            Run %path%\AutoHotkeyU64.exe %LOADER% %myPID% 64, useerrorlevel, pid
+            Run %path%\AutoHotkeyU64.exe %LOADER% %myPID% 64, %A_ScriptDir%
+                , useerrorlevel, pid
             if (ErrorLevel) {
                 Logger.debug("Error starting 64bit dllCaller: " A_LastError)
             }
             this.64BitPID := pid
+            Logger.info("64bit hook created with pid: " this.64BitPID)
         }
     }
 }
