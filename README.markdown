@@ -80,17 +80,19 @@ except `Ctrl+Shift+Escape`, which returns you to `DESKTOP` mode.
 
 ### `DESKTOP` mode keybinds
 
+Note: `X` can be anything from 1-9 by default.
+
 | Combination | Command |
 |:-----------:|:--------|
 | Alt+Escape  | Enter `NORMAL` mode
 | Alt+s       | Enter `SELECT` mode
 | Alt+Shift+: | Enter `COMMAND` mode
 | Alt+i       | Enter `PASSTHROUGH` mode
-| Alt+(X)     | Change to desktop (X), with (X) is in 1-9.  Press again to return.
+| Alt+`X`     | Pick desktop `X`, making it the new `main`.  Press again to return to `previous`, which is the old `main`.
+| Ctrl+Alt+`X`| "Hard pick" desktop `X`, making the initial `main` become the new `other` instead of the new `previous`.
 | Alt+0       | Resynchronise dwinm
-|Alt+Shift+(X)| Send active window to desktop (X), with (X) in 1-9
-| Alt+Tab     | Swap the active and "other" desktop
-| Ctrl+Alt+(X)| Swap the active and "other" desktop, then change to desktop (X)
+|Alt+Shift+`X`| Send active window to desktop `X`.
+| Alt+Tab     | Swap the active and `other` desktop
 | Ctrl+Alt+Tab| Enter `SELECT` mode for the window browser
 | Win+Tab     | Enter `SELECT` mode and bring up the task view
 | Alt+j       | Cycle down the window stack, like Alt+Escape
