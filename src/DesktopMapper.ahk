@@ -5,13 +5,14 @@ class DesktopMapper {
     __new(virtualDesktopManager) {
         this.virtualDesktopManager := virtualDesktopManager
         this._setupGui()
-
         this.resync()
     }
 
     /*
      * Populate the desktopIds array with the current virtual deskops according
-     * to the registry key
+     * to the registry key.
+     *
+     * Costly.
      */
     resync() {
         static REG_ID_LENGTH := 32
@@ -27,21 +28,47 @@ class DesktopMapper {
         }
     }
 
+    /*
+     * Resynchronise and report the total number of desktops.
+     *
+     * Costly.
+     */
     syncDesktopCount() {
         this.resync()
         return this.desktopIds.maxIndex()
     }
 
     /*
-     * returns the number of the current desktop
+     * Report the true current desktop by finding the desktop of a
+     * known window.
+     *
+     * Costly.
      */
     currentDesktop() {
-        this.resync()
         currentId := this._currentDesktopId()
         return this._indexOfId(currentId)
     }
 
     _currentDesktopId() {
+        hwnd := WinExist("A")
+        class := ""
+        guid := ""
+        WinGetClass class, ahk_id %hwnd%
+
+        Logger.trace("hwnd = " hwnd)
+
+        if (hwnd && class != "WorkerW") {
+            guid := this.virtualDesktopManager.getDesktopGuid(hwnd)
+        }
+
+        if (!guid) {
+            guid := this._fallbackCurrentDesktopGuid()
+        }
+        return this._idFromGuid(guid)
+    }
+
+    _fallbackCurrentDesktopGuid() {
+        this.resync()
         hwnd := this.hwnd
         Gui %hwnd%:show, NA ;show but don't activate
         winwait, % "Ahk_id " hwnd
@@ -54,7 +81,9 @@ class DesktopMapper {
         ;; then the desktop the gui is on can get focus
         WinWaitClose Ahk_id %hwnd%
 
-        return this._idFromGuid(guid)
+        Logger.trace("hwnd" hwnd " -- guid " guid)
+
+        return guid
     }
 
     /*
@@ -86,6 +115,5 @@ class DesktopMapper {
         Gui, +HwndMyGuiHwnd
         this.hwnd := MyGuiHwnd
         Gui, hide
-        return this
     }
 }
