@@ -10,7 +10,22 @@ class FunctionMocks {
     assert() {
         for function, calls in this.calls {
             msg := "Expectation failed for " function " calls."
-            Yunit.assertEq(calls.want, calls.got, msg)
+            if (!calls.min && !calls.max) {
+                continue
+            }
+            if (calls.min == calls.max) {
+                Yunit.assertEq(calls.min, calls.got, msg)
+                continue
+            }
+            if (calls.min) {
+                Yunit.assertAtLeast(calls.min, calls.got, msg)
+            }
+            if (calls.max) {
+                Yunit.assertAtMost(calls.max, calls.got, msg)
+            }
+            for _, arg in calls.argsLike {
+                Yunit.fail("never saw an argument like: " arg)
+            }
         }
     }
 
@@ -18,29 +33,38 @@ class FunctionMocks {
         this.calls[name] := { allow: true, value: returnValue }
     }
 
-    expect(name, nTimes, returnValue := "") {
-        this.calls[name] := { want: nTimes, got: 0, value: returnValue }
+    expect(name, nTimes := 1, returnValue := "") {
+        this.calls[name] := { allow: true, min: nTimes, max: nTimes
+                            , got: 0, value: returnValue }
+    }
+
+    expectAtLeast(name, min := 1, returnValue := "") {
+        this.calls[name] := { allow: true, min: min, got: 0
+                            , value: returnValue }
+        return new Expectation(this.calls[name])
     }
 
     disallow(name) {
         this.calls[name] := { allow: false }
     }
 
-    __call(name, _*) {
-        value := this.calls[name].value
-        if (this.calls[name].allow) {
-            return value
+    __call(name, args*) {
+        allow := this.calls[name].allow
+
+        Yunit.assert(allow, "unexpected function call: " name, -2)
+
+        for i, want in this.calls[name].argsLike {
+            for j, got in args {
+                if (want == got || RegExMatch(got, want)) {
+                    this.calls[name].argsLike.removeAt(i)
+                    args.removeAt(j)
+                }
+            }
         }
 
-        want := this.calls[name].want
-
-        Yunit.assert(want, "unexpected function call: " name, -2)
-
         this.calls[name].got += 1
-        got := this.calls[name].got
 
-        Yunit.assertLessOrEq(got, want , "too many " name " calls.")
-        return value
+        return this.calls[name].value
     }
 }
 
@@ -49,11 +73,11 @@ refocus() {
 }
 
 quickSend(keys) {
-    FunctionMocks.__call("quickSend")
+    FunctionMocks.__call("quickSend", keys)
 }
 
 slowSend(keys) {
-    FunctionMocks.__call("slowSend")
+    FunctionMocks.__call("slowSend", keys)
 }
 
 class Mock {
@@ -64,23 +88,26 @@ class Mock {
                 this[key] := val
             }
         }
+        this.____calls := calls
     }
 
-    __call(name, _*) {
-        value := this.____calls[this, name].value
-        if (this.____calls[this, name].allow) {
-            return value
+    __call(name, args*) {
+        allow := this.____calls[this, name].allow
+
+        Yunit.assert(allow, "unexpected function call: " name, -2)
+
+        for i, want in this.____calls[this, name].argsLike {
+            for j, got in args {
+                if (want == got || RegExMatch(got, want)) {
+                    this.____calls[this, name].argsLike.removeAt(i)
+                    args.removeAt(j)
+                }
+            }
         }
 
-        want := this.____calls[this, name].want
-
-        Yunit.assert(want, "unexpected method call: " name, -1)
-
         this.____calls[this, name].got += 1
-        got := this.____calls[this, name].got
 
-        Yunit.assertLessOrEq(got, want , "too many " name " calls.")
-        return value
+        return this.____calls[this, name].value
     }
 
     __get(name, _*) {
@@ -97,7 +124,22 @@ class HotMocks {
         for mock, methods in this.calls {
             for method, calls in methods {
                 msg := "Expectation failed for " method " calls."
-                Yunit.assertEq(calls.want, calls.got, msg)
+                if (!calls.min && !calls.max) {
+                    continue
+                }
+                if (calls.min == calls.max) {
+                    Yunit.assertEq(calls.min, calls.got, msg)
+                    continue
+                }
+                if (calls.min) {
+                    Yunit.assertAtLeast(calls.min, calls.got, msg)
+                }
+                if (calls.max) {
+                    Yunit.assertAtMost(calls.max, calls.got, msg)
+                }
+                for _, arg in calls.argsLike {
+                    Yunit.fail("never saw an argument like: " arg)
+                }
             }
         }
     }
@@ -107,13 +149,33 @@ class HotMocks {
         this.calls[target, name] := { allow: true, value: returnValue }
     }
 
-    expect(target, name, nTimes, returnValue := "") {
+    expect(target, name, nTimes := 1, returnValue := "") {
         target.____calls := this.calls
-        this.calls[target, name] := { want: nTimes, got: 0, value: returnValue }
+        this.calls[target, name] := { allow: true, min: nTimes, max: nTimes
+                                    , got: 0, value: returnValue }
+    }
+
+    expectAtLeast(target, name, min := 1, returnValue := "") {
+        target.____calls := this.calls
+        this.calls[target, name] := { allow: true, min: min, got: 0
+                                    , value: returnValue }
+        return new Expectation(this.calls[target, name])
     }
 
     disallow(target, name) {
         target.____calls := this.calls
         this.calls[target, name] := { allow: false }
+    }
+}
+
+class Expectation {
+
+    __new(calls) {
+        this.calls := calls
+        this.calls.seenArgs := {}
+    }
+
+    argsLike(args) {
+        this.calls.argsLike := args
     }
 }

@@ -4,29 +4,26 @@ class Yunit
 {
     static Modules := [Yunit.StdOut]
 
-    class Tester extends Yunit
-    {
-        __New(Modules)
-        {
+    class Tester extends Yunit {
+        __New(Modules) {
             this.Modules := Modules
         }
     }
 
-    Use(Modules*)
-    {
+    Use(Modules*) {
         return new this.Tester(Modules)
     }
 
-    Test(classes*) ; static method
-    {
+    ;; Static
+    Test(classes*) {
         instance := new this("")
         instance.results := {}
         instance.classes := classes
         instance.Modules := []
-        for key,module in instance.base.Modules
+        for key, module in instance.base.Modules {
             instance.Modules[key] := new module(instance)
-        while (A_Index <= (A_AhkVersion < "2" ? classes.MaxIndex() : classes.Length()))
-        {
+        }
+        while (A_Index <= (A_AhkVersion < "2" ? classes.MaxIndex() : classes.Length())) {
             cls := classes[A_Index]
             instance.current := A_Index
             instance.results[cls.__class] := obj := {}
@@ -35,51 +32,63 @@ class Yunit
         return instance
     }
 
-    Update(Category, Test, Result)
-    {
-        for key,module in this.Modules
+    Update(Category, Test, Result) {
+        for key,module in this.Modules {
             module.Update(Category, Test, Result)
+        }
     }
 
-    TestClass(results, cls)
-    {
+    TestClass(results, cls) {
         environment := new cls() ; calls __New
-        for key,val in cls
-        {
-            if IsObject(val) && IsFunc(val) ;test
-            {
-                if (key = "Begin") or (key = "End")
+        for key,val in cls {
+            if (IsObject(val) && IsFunc(val)) {
+                ;; Ignore case
+                if (key = "Begin" || key = "End") {
                     continue
-                if ObjHasKey(cls,"Begin")
-                && IsFunc(cls.Begin)
-                    environment.Begin()
-                result := 0
-                try
-                {
-                    %val%(environment)
-                    if ObjHasKey(environment, "ExpectedException")
-                        throw Exception("ExpectedException")
                 }
-                catch error
-                {
-                    if !ObjHasKey(environment, "ExpectedException")
-                    || !this.CompareValues(environment.ExpectedException, error)
+                result := 0
+                if (ObjHasKey(cls, "Begin") && IsFunc(cls.Begin)) {
+                    try {
+                        environment.begin()
+                    } catch error {
+                        error.message
+                            := "during #begin: " error.message
                         result := error
+                    }
+                }
+                if (result == 0) {
+                    try {
+                        %val%(environment)
+                        if (ObjHasKey(environment, "ExpectedException")) {
+                            throw Exception("ExpectedException")
+                        }
+                    } catch error {
+                        e := environment.ExpectedException
+                        if (!ObjHasKey(environment, "ExpectedException")
+                            || !this.CompareValues(e, error)) {
+                            result := error
+                        }
+                    }
+                    if (ObjHasKey(cls,"End") && IsFunc(cls.End)) {
+                        try {
+                            environment.end()
+                        } catch error {
+                            error.message
+                                := "during #end: " error.message
+                            result := error
+                        }
+                    }
                 }
                 results[key] := result
                 ObjRemove(environment, "ExpectedException")
                 this.Update(cls.__class, key, results[key])
-                if ObjHasKey(cls,"End")
-                && IsFunc(cls.End)
-                    environment.End()
-            }
-            else if IsObject(val)
-            && ObjHasKey(val, "__class") ;category
-            {
-                if (A_AhkVersion < "2")
+            } else if (IsObject(val) && ObjHasKey(val, "__class")) {
+                ;category
+                if (A_AhkVersion < "2") {
                    this.classes.Insert(++this.current, val)
-                else
+                } else {
                    this.classes.InsertAt(++this.current, val)
+                }
             }
         }
     }
@@ -103,17 +112,29 @@ class Yunit
 
     assertLessThan(max, got, message := "", level := 0) {
         if (got >= max) {
-            throw Exception(message
-                . "`n`texpected strictly less than: " max
-                . "`n`tgot: " got , level - 1)
+            throw Exception(message . "`n`texpected strictly less than: "
+                . max "`n`tgot: " got , level - 1)
         }
     }
 
-    assertLessOrEq(max, got, message := "", level := 0) {
+    assertAtMost(max, got, message := "", level := 0) {
         if (got > max) {
-            throw Exception(message
-                . "`n`texpected less than or equal to: " want
-                . "`n`tgot: " got, level - 1)
+            throw Exception(message . "`n`texpected at most: "
+                . max "`n`tgot: " got, level - 1)
+        }
+    }
+
+    assertGreaterThan(min, got, message := "", level := 0) {
+        if (got <= min) {
+            throw Exception(message . "`n`texpected strictly greater than: "
+                . min "`n`tgot: " got , level - 1)
+        }
+    }
+
+    assertAtLeast(min, got, message := "", level := 0) {
+        if (got < min) {
+            throw Exception(message . "`n`texpected at least: "
+                . min "`n`tgot: " got, level - 1)
         }
     }
 
