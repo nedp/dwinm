@@ -2,7 +2,6 @@
 
 #Include %A_ScriptDir%/DesktopChanger.ahk
 #Include %A_ScriptDir%/DesktopMapper.ahk
-#Include %A_ScriptDir%/DllCaller.ahk
 #Include %A_ScriptDir%/HotkeyManager.ahk
 #Include %A_ScriptDir%/Logger.ahk
 #Include %A_ScriptDir%/MonitorMapper.ahk
@@ -371,6 +370,7 @@ class DWinM {
         Suspend
 
         this.desktopChanger.resync()
+        this.windowMover.resync()
 
         if (!wasSuspended) {
             Suspend Off

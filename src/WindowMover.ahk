@@ -1,21 +1,42 @@
 ﻿class WindowMover {
     static MAX_RESYNC_ATTEMPTS := 3
 
-    static has32bit
-    static has64bit
+    static 32BitPID
+    static 64BitPID
 
     __new() {
+        wasCritical := A_IsCritical
+        Critical
+
         if (!this.isAvailable()) {
             this._startUpDLLInjectors()
         }
+
+        Critical %wasCritical%
     }
 
     /*
      * Check whether both the 32 and 64 bit dll injectors are available.
      */
     isAvailable() {
-        return this.has32bit && this.has64bit
+        if (this.32BitPID) {
+            process exist, % this.32BitPID
+            if (ErrorLevel == 0) {
+                this.32BitPID := false
+                Logger.info(this.__class ": 32 bit dll missing")
+            }
+        }
+        if (this.64BitPID) {
+            process exist, % this.64BitPID
+            if (ErrorLevel == 0) {
+                this.64BitPID := false
+                Logger.info(this.__class ": 64 bit dll missing")
+            }
+        }
+        return !!this.32BitPID && !!this.64BitPID
     }
+
+    resync := this.__new
 
     /*
      * Move the active window to the specified desktop number,
@@ -44,25 +65,30 @@
     }
 
     _startUpDLLInjectors() {
-        wasCritical := A_IsCritical
-        Critical
+        static LOADER := A_ScriptDir "\..\dll\dllCaller.ahk"
+        myPID := DllCall("GetCurrentProcessId")
 
-        loop % this.MAX_RESYNC_ATTEMPTS {
-            ;; Use guards so we only call dlls which we haven't called already.
-            if (!this.has32bit) {
-                Logger.info("Starting the hook-32.dll")
-                this.has32bit := DllCaller.callDll(32)
+        path := ""
+        pid := ""
+        SplitPath A_AhkPath, _, path
+
+        while (!this.32BitPid && A_Index <= this.MAX_RESYNC_ATTEMPTS) {
+            Logger.info(this.__class ": creating 32bit dll")
+
+            Run %path%\AutoHotkeyU32.exe %LOADER% %myPID% 32, useerrorlevel, pid
+            if (ErrorLevel) {
+                Logger.debug("Error starting 32bit dllCaller: " A_LastError)
             }
-            if (!this.has64bit) {
-                Logger.info("Starting the hook-64.dll")
-                this.has64bit := DllCaller.callDll(64)
-            }
-            if (this.has32bit && this.has64bit) {
-                goto cleanup
-            }
+            this.32BitPid := pid
         }
 
-        cleanup:
-            Critical %wasCritical%
+        while (!this.64BitPid && A_Index <= this.MAX_RESYNC_ATTEMPTS) {
+            Logger.info(this.__class ": creating 64bit dll")
+            Run %path%\AutoHotkeyU64.exe %LOADER% %myPID% 64, useerrorlevel, pid
+            if (ErrorLevel) {
+                Logger.debug("Error starting 64bit dllCaller: " A_LastError)
+            }
+            this.64BitPID := pid
+        }
     }
 }
