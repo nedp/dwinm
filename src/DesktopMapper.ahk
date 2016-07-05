@@ -2,6 +2,11 @@ class DesktopMapper {
 
     static PATH := "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VirtualDesktops"
 
+    static NULL_GUID := "{00000000-0000-0000-0000-000000000000}"
+    static BAD_CLASS_REGEX := "WorkerW"
+                           . "|WindowsForms10\.Window"
+                           . "|Shell_TrayWnd"
+
     __new(virtualDesktopManager) {
         this.virtualDesktopManager := virtualDesktopManager
         this._setupGui()
@@ -50,20 +55,22 @@ class DesktopMapper {
     }
 
     _currentDesktopId() {
+        Logger.trace(this.__class "#_currentDesktopId: ENTRY")
         hwnd := WinExist("A")
         class := ""
         guid := ""
         WinGetClass class, ahk_id %hwnd%
 
-        Logger.trace("hwnd = " hwnd)
-
-        if (hwnd && class != "WorkerW") {
+        Logger.trace("hwnd = " hwnd ", class = " class)
+        if (hwnd && RegExMatch(class, this.BAD_CLASS_REGEX) <= 0) {
             guid := this.virtualDesktopManager.getDesktopGuid(hwnd)
         }
 
-        if (!guid) {
+        if (!guid || guid == this.NULL_GUID) {
+            Logger.trace("guid = " guid ", falling back")
             guid := this._fallbackCurrentDesktopGuid()
         }
+        Logger.trace(this.__class "#_currentDesktopId: EXIT")
         return this._idFromGuid(guid)
     }
 
@@ -81,7 +88,8 @@ class DesktopMapper {
         ;; then the desktop the gui is on can get focus
         WinWaitClose Ahk_id %hwnd%
 
-        Logger.trace("hwnd" hwnd " -- guid " guid)
+        Logger.debug(this.__class "_fallbackCurretnDesktopGuid: hwnd = "
+                     . hwnd " -- guid = " guid)
 
         return guid
     }

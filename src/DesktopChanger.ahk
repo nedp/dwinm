@@ -178,11 +178,15 @@ class DesktopChanger {
 
     ;; Doesn't resync the desktopMapper!
     _resetCurrentDesktop() {
+        Logger.trace(this.__class "#_resetCurrentDesktop: ENTRY")
         static BUFFER := 2
 
         actualDesktop := this.desktopMapper.currentDesktop()
 
+        Logger.trace("actualDesktop = " actualDesktop)
+
         while (actualDesktop != this.desktop && A_Index < this.MAX_RETRIES) {
+            Logger.trace("#_resetCurrentDesktop: LOOP")
             ;; Overshooting is reliable because there's no negative desktops.
             slowSend("^#{Left " (actualDesktop + BUFFER) "}")
             Sleep this.RESYNC_DELAY
@@ -190,7 +194,9 @@ class DesktopChanger {
             Sleep this.RESYNC_DELAY
 
             actualDesktop := this.desktopMapper.currentDesktop()
+            Logger.trace("actualDesktop = " actualDesktop)
         }
+        Logger.trace(this.__class "#_resetCurrentDesktop: EXIT")
         return actualDesktop
     }
 

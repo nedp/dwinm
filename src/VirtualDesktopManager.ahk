@@ -36,11 +36,14 @@
     ; https://github.com/cocobelgica/AutoHotkey-Util/blob/master/Guid.ahk#L36
     _guidToStr(ByRef VarOrAddress)
     {
-        Logger.debug(&VarOrAddress " address")
         pGuid := IsByRef(VarOrAddress) ? &VarOrAddress : VarOrAddress
         VarSetCapacity(sGuid, 78) ; (38 + 1) * 2
-        if !DllCall("ole32\StringFromGUID2", "Ptr", pGuid, "Ptr", &sGuid, "Int", 39)
+        ok := DllCall("ole32\StringFromGUID2", "Ptr", pGuid
+            , "Ptr", &sGuid, "Int", 39)
+        if (!ok) {
             throw Exception("Invalid GUID", -1, Format("<at {1:p}>", pGuid))
+        }
+
         return StrGet(&sGuid, "UTF-16")
     }
 
