@@ -27,10 +27,21 @@ class DesktopMapper {
         }
     }
 
+    syncDesktopCount() {
+        this.resync()
+        return this.desktopIds.maxIndex()
+    }
+
     /*
-     * Gets the desktop id of the current desktop
+     * returns the number of the current desktop
      */
-    getCurrentDesktopId() {
+    currentDesktop() {
+        this.resync()
+        currentId := this._currentDesktopId()
+        return this._indexOfId(currentId)
+    }
+
+    _currentDesktopId() {
         hwnd := this.hwnd
         Gui %hwnd%:show, NA ;show but don't activate
         winwait, % "Ahk_id " hwnd
@@ -42,25 +53,8 @@ class DesktopMapper {
         ;; If you don't wait until it closes (and sleep a little)
         ;; then the desktop the gui is on can get focus
         WinWaitClose Ahk_id %hwnd%
-        sleep 50
 
         return this._idFromGuid(guid)
-    }
-
-    getNumberOfDesktops() {
-        this.resync()
-        return this.desktopIds.maxIndex()
-    }
-
-    /*
-     * returns the number of the current desktop
-     */
-    getDesktopNumber() {
-        this.resync()
-
-        currentDesktop := this.getCurrentDesktopId()
-
-        return this._indexOfId(currentDesktop)
     }
 
     /*

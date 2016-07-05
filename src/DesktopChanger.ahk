@@ -4,6 +4,15 @@ class DesktopChanger {
 
     otherDesktop := 1
 
+    /*
+     * `dwm : DWinM`
+     * `desktopMapper : DesktopMapper`
+     * `tooltip : {x: int, y: int, id int}`.
+     *
+     * Calls #_resetDesktopCount but not _resetCurrentDesktop.
+     * Since we have no preexisting desktop to reset to, a full
+     * resync would be wasteful.
+     */
     __new(dwm, desktopMapper, tooltip) {
         this.dwm := dwm
         this.desktopMapper := desktopMapper
@@ -12,11 +21,12 @@ class DesktopChanger {
         wasCritical := A_IsCritical
         Critical
 
-        this.desktop := desktopMapper.getDesktopNumber()
+        this.nDesktops := this._resetDesktopCount()
+        this.desktop := desktopMapper.currentDesktop()
+        Logger.debug("DesktopChanger#__new: this.desktop = " this.desktop)
         this.recentDesktop := 1
 
-        this.nDesktops := this._resetDesktopCount()
-        this.displayDesktop()
+        this._displayDesktop()
 
         Critical %wasCritical%
     }
@@ -30,7 +40,7 @@ class DesktopChanger {
         this.otherDesktop := this.desktop
         this._changeDesktop(otherDesktop)
 
-        this.displayDesktop()
+        this._displayDesktop()
 
         Critical %wasCritical%
         Logger.trace("DesktopChanger#swapDesktops: exit")
@@ -51,7 +61,7 @@ class DesktopChanger {
 
         refocus()
 
-        this.displayDesktop()
+        this._displayDesktop()
 
         Critical %wasCritical%
     }
@@ -104,7 +114,7 @@ class DesktopChanger {
             Logger.trace("hardPickDesktop: currentDesktop = "
                         . this.desktop)
 
-            this.displayDesktop()
+            this._displayDesktop()
         }
 
         Critical %wasCritical%
@@ -122,10 +132,10 @@ class DesktopChanger {
         this.desktop := newDesktop
 
         refocus()
-        this.displayDesktop()
+        this._displayDesktop()
     }
 
-    displayDesktop() {
+    _displayDesktop() {
         message := ""
         loop % this.nDesktops {
             message .= (A_index == this.desktop)       ? "[" A_Index "]"
@@ -138,56 +148,48 @@ class DesktopChanger {
 
     ;; Ensure that the number of desktops matches `this.nDesktops`.
     _resetDesktopCount() {
-        loop % DesktopChanger.MAX_RETRIES {
+        static BUFFER := 2
+
+        nActualDesktops := this.desktopMapper.syncDesktopCount()
+        nDesktopsToMake := this.dwm.nDesktops - nActualDesktops
+        if (nDesktopsToMake == 0) {
+            return nActualDesktops
+        }
+
+        ;; Go to the last desktop so we add/remove at the right place.
+        actualDesktop := this.desktopMapper.currentDesktop()
+        slowSend("#^{Right " (nActualDesktops - actualDesktop + BUFFER) "}")
+        Sleep DesktopChanger.RESYNC_DELAY
+
+        while (nDesktopsToMake != 0 && A_Index < this.MAX_RETRIES) {
+            this._displayTooltip("Fixing wrong desktop count (" nActualDesktops ")")
+
+            ;; Create/remove desktops if we have too many/few.
+            keys := nDesktopsToMake > 0 ? "#^{d " nDesktopsToMake "}"
+                                        : "#^{F4 " (-nDesktopsToMake) "}"
+            slowSend(keys)
             Sleep DesktopChanger.RESYNC_DELAY
 
-            nActualDesktops := this.desktopMapper.getNumberOfDesktops()
+            nActualDesktops := this.desktopMapper.syncDesktopCount()
             nDesktopsToMake := this.dwm.nDesktops - nActualDesktops
-
-            if (nDesktopsToMake == 0) {
-                return nActualDesktops
-            }
-            this._displayTooltip("Wrong desktop count: " . nActualDesktops
-                . ". Trying to fix...")
-
-            ;; Go to the last desktop so we add/remove at the right place.
-            slowSend("#^{Right " nActualDesktops "}")
-
-            Sleep DesktopChanger.RESYNC_DELAY
-
-            ;; Create desktops if we don't have enough.
-            if (nDesktopsToMake > 0) {
-                slowSend("#^{d " nDesktopsToMake "}")
-            }
-
-            ;; Remove desktops if we have too many.
-            if (nDesktopsToMake < 0) {
-                n := -nDesktopsToMake
-                slowSend("#^{F4 " n "}")
-            }
         }
         return nActualDesktops
     }
 
+    ;; Doesn't resync the desktopMapper!
     _resetCurrentDesktop() {
-        actualDesktop := this.desktopMapper.getDesktopNumber()
-        loop % this.MAX_RETRIES {
-            if (actualDesktop == this.desktop) {
-                return actualDesktop
-            }
+        static BUFFER := 2
 
+        actualDesktop := this.desktopMapper.currentDesktop()
+
+        while (actualDesktop != this.desktop && A_Index < this.MAX_RETRIES) {
+            ;; Overshooting is reliable because there's no negative desktops.
+            slowSend("^#{Left " (actualDesktop + BUFFER) "}")
+            Sleep this.RESYNC_DELAY
+            slowSend("^#{Right " (this.desktop - 1) "}")
             Sleep this.RESYNC_DELAY
 
-            slowSend("^#{Left " this.nDesktops "}")
-
-            Sleep this.RESYNC_DELAY
-
-            nMove := this.desktop - 1
-            slowSend("^#{Right " nMove "}")
-
-            Sleep this.RESYNC_DELAY
-
-            actualDesktop := this.desktopMapper.getDesktopNumber()
+            actualDesktop := this.desktopMapper.currentDesktop()
         }
         return actualDesktop
     }
