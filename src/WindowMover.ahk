@@ -43,11 +43,6 @@
         return ErrorLevel
     }
 
-    /*
-     * Resynchronise to ensure that the injectors are running.
-     */
-    resync := this.__new
-
     _startUpDLLInjectors() {
         wasCritical := A_IsCritical
         Critical

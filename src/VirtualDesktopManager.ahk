@@ -14,7 +14,7 @@
         return this
     }
 
-    getWindowDesktopId(hWnd, tryAgain := true)
+    getWindowDesktopId(hWnd)
     {
         desktopId := ""
         VarSetCapacity(desktopID, 16, 0)
@@ -23,12 +23,7 @@
 
         Error := DllCall(this.getWindowDesktopIdAddress, "Ptr", this.iVirtualDesktopManager, "Ptr", hWnd, "Ptr", &desktopID)
         if(Error != 0) {
-            if(tryAgain)
-            {
-                return this.getWindowDesktopId(hwnd, false)
-            }
-            msgbox % "error in getWindowDesktopId " Error
-            clipboard := error
+            Logger.warning("error in getWindowDesktopId " Error)
         }
 
         return &desktopID

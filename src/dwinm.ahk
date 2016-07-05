@@ -370,9 +370,7 @@ class DWinM {
         wasSuspended := A_IsSuspended
         Suspend
 
-        this.desktopMapper.resync()
         this.desktopChanger.resync()
-        this.windowMover.resync()
 
         if (!wasSuspended) {
             Suspend Off
