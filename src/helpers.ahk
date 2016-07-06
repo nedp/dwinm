@@ -1,4 +1,11 @@
 ﻿/*
+ * A function to sleep for a specified amount of time.
+ */
+sleep(milliseconds) {
+    Sleep, milliseconds
+}
+
+/*
  * Send keystrokes with minimal delay to mitigate flickering
  * and improve responsiveness.
  */

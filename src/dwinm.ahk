@@ -2,6 +2,7 @@
 
 #Include %A_ScriptDir%/DesktopChanger.ahk
 #Include %A_ScriptDir%/DesktopMapper.ahk
+#Include %A_ScriptDir%/DLLManager.ahk
 #Include %A_ScriptDir%/HotkeyManager.ahk
 #Include %A_ScriptDir%/Logger.ahk
 #Include %A_ScriptDir%/MonitorMapper.ahk
@@ -18,7 +19,7 @@ CoordMode ToolTip, Screen
 SetTitleMatchMode RegEx
 SendMode InputThenPlay
 
-Logger.setLevel(Logger.Levels.WARNING)
+Logger.setLevel(Logger.Levels.TRACE)
 Logger.tooltip := DWinM.LOGGER_TOOLTIP
 DWM := new DWinM()
 
@@ -353,9 +354,11 @@ class DWinM {
     virtualDesktopManager := new VirtualDesktopManager()
     desktopMapper := new DesktopMapper(this.virtualDesktopManager)
 
+    dllManager := new DLLManager()
+
     desktopChanger
         := new DesktopChanger(this, this.desktopMapper, this.DESKTOP_TOOLTIP)
-    windowMover := new WindowMover()
+    windowMover := new WindowMover(this.dllManager)
     hotkeyManager
         := new HotkeyManager(this.desktopChanger, this.windowMover, this)
 

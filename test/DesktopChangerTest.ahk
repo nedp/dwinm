@@ -13,8 +13,8 @@ return
 
 class DesktopChangerTest {
 
-    begin(target := "") {
-        this.tester := target
+    begin(tester := "") {
+        this.tester := tester
 
         FunctionMocks.reset()
         this.tester.hotMocks := new HotMocks()

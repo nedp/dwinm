@@ -159,7 +159,7 @@ class DesktopChanger {
         ;; Go to the last desktop so we add/remove at the right place.
         actualDesktop := this.desktopMapper.currentDesktop()
         slowSend("#^{Right " (nActualDesktops - actualDesktop + BUFFER) "}")
-        Sleep DesktopChanger.RESYNC_DELAY
+        sleep(DesktopChanger.RESYNC_DELAY)
 
         while (nDesktopsToMake != 0 && A_Index < this.MAX_RETRIES) {
             this._displayTooltip("Fixing wrong desktop count (" nActualDesktops ")")
@@ -168,7 +168,7 @@ class DesktopChanger {
             keys := nDesktopsToMake > 0 ? "#^{d " nDesktopsToMake "}"
                                         : "#^{F4 " (-nDesktopsToMake) "}"
             slowSend(keys)
-            Sleep DesktopChanger.RESYNC_DELAY
+            sleep(DesktopChanger.RESYNC_DELAY)
 
             nActualDesktops := this.desktopMapper.syncDesktopCount()
             nDesktopsToMake := this.dwm.nDesktops - nActualDesktops
@@ -189,9 +189,9 @@ class DesktopChanger {
             Logger.trace("#_resetCurrentDesktop: LOOP")
             ;; Overshooting is reliable because there's no negative desktops.
             slowSend("^#{Left " (actualDesktop + BUFFER) "}")
-            Sleep this.RESYNC_DELAY
+            sleep(this.RESYNC_DELAY)
             slowSend("^#{Right " (this.desktop - 1) "}")
-            Sleep this.RESYNC_DELAY
+            sleep(this.RESYNC_DELAY)
 
             actualDesktop := this.desktopMapper.currentDesktop()
             Logger.trace("actualDesktop = " actualDesktop)

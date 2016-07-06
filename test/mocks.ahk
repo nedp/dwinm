@@ -68,7 +68,8 @@ class FunctionMocks {
 
         this.calls[name].got += 1
 
-        return this.calls[name].value
+        return this.calls[name].impl ? this.calls[name].impl.call()
+                                     : this.calls[name].value
     }
 }
 
@@ -82,6 +83,10 @@ quickSend(keys) {
 
 slowSend(keys) {
     FunctionMocks.__call("slowSend", keys)
+}
+
+sleep(milliseconds) {
+    Yunit.assert(milliseconds < 2000, "Slept for too long: " milliseconds, -2)
 }
 
 class Mock {
@@ -98,7 +103,7 @@ class Mock {
 
     __call(name, args*) {
         Yunit.assert(IsObject(this.____calls[this, name])
-            , "unknown method call: " this.name "#" name, -2)
+            , "unknown method call: " this.name "#" name, -1)
 
         allow := this.____calls[this, name].allow
         Yunit.assert(allow, "unexpected method call: " this "#" name, -1)
@@ -114,7 +119,9 @@ class Mock {
 
         this.____calls[this, name].got += 1
 
-        return this.____calls[this, name].value
+        return this.____calls[this, name].impl
+            ? this.____calls[this, name].impl.call()
+            : this.____calls[this, name].value
     }
 
     __get(name, _*) {
@@ -186,6 +193,12 @@ class Expectation extends CarefulObject {
         this.calls.argsLike := args
     }
 
+    andCall(callable) {
+        Yunit.assert(IsObject(callable) && IsObject(callable.call)
+            , "Expectation#andCall passed an invalid callable.", -2)
+        this.calls.impl := callable
+    }
+
     andReturn(value) {
         this.calls.value := value
     }
@@ -196,4 +209,33 @@ class CarefulObject {
         throw Exception("A nonexisting method was invoked. "
             . "Specifically: " this.__class "#" name, -1)
     }
+}
+
+class Flag {
+
+    __new(value) {
+        this.value := value
+    }
+
+    call() {
+        return this.value
+    }
+
+}
+
+class Fuse {
+
+    __new(flag, nRemaining, newValue) {
+        this.flag := flag
+        this.nRemaining := nRemaining
+        this.newValue := newValue
+    }
+
+    call() {
+        if (this.nRemaining == 0) {
+            this.flag.value := this.newValue
+        }
+        this.nRemaining -= 1
+    }
+
 }

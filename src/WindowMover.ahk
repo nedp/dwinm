@@ -1,42 +1,21 @@
 ﻿class WindowMover {
-    static MAX_RESYNC_ATTEMPTS := 3
+    __new(dllManager) {
+        this.dllManager := dllManager
 
-    static 32BitPID
-    static 64BitPID
-
-    __new() {
-        wasCritical := A_IsCritical
-        Critical
-
-        if (!this.isAvailable()) {
-            this._startUpDLLInjectors()
-        }
-
-        Critical %wasCritical%
+        this._startUpDLLInjectorsIfNeeded()
     }
 
     /*
      * Check whether both the 32 and 64 bit dll injectors are available.
      */
     isAvailable() {
-        if (this.32BitPID) {
-            process exist, % this.32BitPID
-            if (ErrorLevel == 0) {
-                this.32BitPID := false
-                Logger.info(this.__class ": 32 bit dll missing")
-            }
-        }
-        if (this.64BitPID) {
-            process exist, % this.64BitPID
-            if (ErrorLevel == 0) {
-                this.64BitPID := false
-                Logger.info(this.__class ": 64 bit dll missing")
-            }
-        }
-        return !!this.32BitPID && !!this.64BitPID
+        return this.dllManager.is32BitMoverAvailable()
+            && this.dllManager.is64BitMoverAvailable()
     }
 
-    resync := this.__new
+    resync() {
+        this._startUpDLLInjectorsIfNeeded()
+    }
 
     /*
      * Move the active window to the specified desktop number,
@@ -64,35 +43,17 @@
         return ErrorLevel
     }
 
-    _startUpDLLInjectors() {
-        static LOADER := A_ScriptDir "\..\dll\dllCaller.ahk"
-        myPID := DllCall("GetCurrentProcessId")
+    _startUpDLLInjectorsIfNeeded() {
+        wasCritical := A_IsCritical
+        Critical
 
-        path := ""
-        pid := ""
-        SplitPath A_AhkPath, _, path
-
-        while (!this.32BitPid && A_Index <= this.MAX_RESYNC_ATTEMPTS) {
-            Logger.info(this.__class ": creating 32bit dll")
-
-            Run %path%\AutoHotkeyU32.exe %LOADER% %myPID% 32, %A_ScriptDir%
-                , useerrorlevel, pid
-            if (ErrorLevel) {
-                Logger.debug("Error starting 32bit dllCaller: " A_LastError)
-            }
-            this.32BitPid := pid
-            Logger.info("32bit hook created with pid: " this.32BitPid)
+        if (!this.dllManager.is32BitMoverAvailable()) {
+            this.dllManager.start32BitMover()
+        }
+        if (!this.dllManager.is64BitMoverAvailable()) {
+            this.dllManager.start64BitMover()
         }
 
-        while (!this.64BitPid && A_Index <= this.MAX_RESYNC_ATTEMPTS) {
-            Logger.info(this.__class ": creating 64bit dll")
-            Run %path%\AutoHotkeyU64.exe %LOADER% %myPID% 64, %A_ScriptDir%
-                , useerrorlevel, pid
-            if (ErrorLevel) {
-                Logger.debug("Error starting 64bit dllCaller: " A_LastError)
-            }
-            this.64BitPID := pid
-            Logger.info("64bit hook created with pid: " this.64BitPID)
-        }
+        Critical %wasCritical%
     }
 }
