@@ -1,4 +1,4 @@
-class DesktopMapper {
+class DesktopMapper extends CarefulObject {
 
     static PATH := "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VirtualDesktops"
 

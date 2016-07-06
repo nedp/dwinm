@@ -5,6 +5,13 @@ sleep(milliseconds) {
     Sleep, milliseconds
 }
 
+class CarefulObject {
+    __call(name, _*) {
+        throw Exception("A nonexisting method was invoked. "
+            . "Specifically: " this.__class "#" name, -1)
+    }
+}
+
 /*
  * Send keystrokes with minimal delay to mitigate flickering
  * and improve responsiveness.

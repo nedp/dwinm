@@ -329,7 +329,7 @@ DWM.hotkeyManager
     return
 #If
 
-class DWinM {
+class DWinM extends CarefulObject {
     static Modes := { DESKTOP: "DESKTOP"
                     , NORMAL: "NORMAL"
                     , SELECT : "SELECT"

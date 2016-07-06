@@ -1,4 +1,4 @@
-﻿class WindowMover {
+﻿class WindowMover extends CarefulObject {
     __new(dllManager) {
         this.dllManager := dllManager
 

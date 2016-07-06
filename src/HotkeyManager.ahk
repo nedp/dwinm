@@ -1,4 +1,4 @@
-class HotkeyManager {
+class HotkeyManager extends CarefulObject {
 
     __new(desktopChanger, windowMover, dwm) {
         this.desktopChanger := desktopChanger

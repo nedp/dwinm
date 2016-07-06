@@ -1,4 +1,4 @@
-class DesktopChanger {
+class DesktopChanger extends CarefulObject {
     static MAX_RETRIES := 3 ;; Maximum number of attempts to resync.
     static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
 

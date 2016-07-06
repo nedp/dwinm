@@ -3,7 +3,7 @@
  *
  * Not meant to be instantiated; just call methods directly on the class.
  */
-class Logger {
+class Logger extends CarefulObject {
 
     /*
      * Higher number is lower priority.

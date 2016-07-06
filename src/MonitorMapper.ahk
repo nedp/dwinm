@@ -1,6 +1,5 @@
 ﻿;taken from optimist__prime https://autohotkey.com/boards/viewtopic.php?t=9224
-class MonitorMapperClass
-{
+class MonitorMapperClass extends CarefulObject {
     ; This part figures out how many times we need to hit Tab to get to the
     ; monitor with the window we are trying to send to another desktop.
     getRequiredTabCount(hwnd) {

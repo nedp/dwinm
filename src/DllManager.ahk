@@ -2,7 +2,7 @@
  * Responsible for managing the interface between the main
  * process and external autohotkey processes which run DLLs.
  */
-class DllManager {
+class DllManager extends CarefulObject {
 
     static LOADER := A_ScriptDir "\..\dll\dllCaller.ahk"
 
@@ -17,7 +17,7 @@ class DllManager {
         this.ahkPath := path
     }
 
-    is32BitAvailable() {
+    is32BitMoverAvailable() {
         if (this.32BitMoverPID != 0) {
             process exist, % this.32BitMoverPID
             if (ErrorLevel == 0) {
@@ -28,7 +28,7 @@ class DllManager {
         return this.32BitMoverPID != 0
     }
 
-    is64BitAvailable() {
+    is64BitMoverAvailable() {
         if (this.64BitMoverPID != 0) {
             process exist, % this.64BitMoverPID
             if (ErrorLevel == 0) {

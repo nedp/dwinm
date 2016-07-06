@@ -1,4 +1,4 @@
-﻿class VirtualDesktopManager {
+﻿class VirtualDesktopManager extends CarefulObject {
     __new()
     {
         Logger.info("Creating the vdm")
