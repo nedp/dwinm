@@ -7,13 +7,12 @@ rem "C:/Program Files/AutoHotkey/AutoHotkeyU32.exe" /ErrorStdOut "testMain.ahk" 
 
 rem Loop over all ahk files in tests directory
 for /r %%i in (test*.ahk) do (
-	start "testing" /B /wait "C:\Program Files\AutoHotkey\AutoHotkeyU32.exe" /ErrorStdOut %%~nxi > testoutput.txt 2>&1
 	echo ** Running %%~nxi **
+	start "testing" /B /wait "C:\Program Files\AutoHotkey\AutoHotkeyU32.exe" /ErrorStdOut %%~nxi
 	if errorlevel 1 (
-		echo *** Test file %%~nxi failed ***
+		echo *** TEST FILE %%~nxi FAILED ***
 		set err_level=1
 	)
-	type testoutput.txt
 	echo.
 )
 

@@ -1,8 +1,7 @@
-;#NoEnv
-
-class Yunit
-{
+class Yunit {
     static Modules := [Yunit.StdOut]
+
+    static NO_EXPECTED_EXCEPTION := Exception("expected exception not seen")
 
     class Tester extends Yunit {
         __New(Modules) {
@@ -23,74 +22,71 @@ class Yunit
         for key, module in instance.base.Modules {
             instance.Modules[key] := new module(instance)
         }
-        while (A_Index <= (A_AhkVersion < "2" ? classes.MaxIndex() : classes.Length())) {
-            cls := classes[A_Index]
-            instance.current := A_Index
+        for i, cls in classes {
+            instance.current := i
             instance.results[cls.__class] := obj := {}
             instance.TestClass(obj, cls)
         }
         return instance
     }
 
-    Update(Category, Test, Result) {
-        for key,module in this.Modules {
-            module.Update(Category, Test, Result)
+    update(category, test, result) {
+        for key, module in this.modules {
+            module.update(category, test, result)
         }
     }
 
     TestClass(results, cls) {
         environment := new cls() ; calls __New
         for key,val in cls {
-            if (IsObject(val) && IsFunc(val)) {
-                ;; Ignore case
-                if (key = "Begin" || key = "End") {
-                    continue
-                }
-                result := 0
-                if (ObjHasKey(cls, "Begin") && IsFunc(cls.Begin)) {
-                    try {
-                        environment.begin()
-                    } catch error {
-                        error.message
-                            := "during #begin: " error.message
-                        result := error
-                    }
-                }
-                if (result == 0) {
-                    try {
-                        %val%(environment)
-                        if (ObjHasKey(environment, "ExpectedException")) {
-                            throw Exception("ExpectedException")
-                        }
-                    } catch error {
-                        e := environment.ExpectedException
-                        if (!ObjHasKey(environment, "ExpectedException")
-                            || !this.CompareValues(e, error)) {
-                            result := error
-                        }
-                    }
-                    if (ObjHasKey(cls,"End") && IsFunc(cls.End)) {
-                        try {
-                            environment.end()
-                        } catch error {
-                            error.message
-                                := "during #end: " error.message
-                            result := error
-                        }
-                    }
-                }
-                results[key] := result
-                ObjRemove(environment, "ExpectedException")
-                this.Update(cls.__class, key, results[key])
-            } else if (IsObject(val) && ObjHasKey(val, "__class")) {
-                ;category
-                if (A_AhkVersion < "2") {
-                   this.classes.Insert(++this.current, val)
-                } else {
-                   this.classes.InsertAt(++this.current, val)
-                }
+            if (!IsObject(val)) {
+                continue
+            }
+            if (!IsFunc(val) && ObjHasKey(val, "__class")) {
+                ; New category
+                this.classes.InsertAt(++this.current, val)
+                continue
+            }
+            if (!IsFunc(val)) {
+                continue
+            }
+            ;; Ignore case
+            if (SubStr(key, 1, 4) != "test") {
+                continue
+            }
+            result := 0
+            if (ObjHasKey(cls, "Begin") && IsFunc(cls.Begin)) {
+                result := this.try(environment, environment.begin)
+            }
+            if (result == 0) {
+                result := this.try(environment, val)
+            }
+            if (ObjHasKey(cls, "End") && IsFunc(cls.End)) {
+                result := result !== 0 ? result
+                                       : this.try(environment, environment.end)
+            }
+            if (result) {
+                this.didFail := true
+            }
+            results[key] := result
+            this.update(cls.__class, SubStr(key, 5), result)
+            ObjRemove(environment, "ExpectedException")
+        }
+    }
+
+    try(environment, method) {
+        try {
+            %method%(environment)
+            if (ObjHasKey(environment, "ExpectedException")) {
+                throw this.NO_EXPECTED_EXCEPTION
+            }
+        } catch error {
+            if (error != environment.ExpectedException) {
+                error.message := "during #" method ": " error.message
+                return error
             }
         }
+        return 0
     }
 
     fail(message := "FAIL", level := 0) {

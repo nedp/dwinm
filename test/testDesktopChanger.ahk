@@ -1,5 +1,3 @@
-; #Include <Yunit\Yunit>
-; #Include <Yunit\StdOut>
 #Include %A_ScriptDir%\..\lib\Yunit\Yunit.ahk
 #Include %A_ScriptDir%\..\lib\Yunit\StdOut.ahk
 
@@ -10,19 +8,7 @@
 
 #Warn
 
-t := Yunit.Use(YunitStdOut).Test(DesktopChangerTest)
-
-; loop through the results, check if there was a FAIL case
-errorcode := 0
-for k, v in t.results {
-    if IsObject(v){
-        for k2, v2 in v {
-            if (v2 != "0")
-                errorcode := 1
-        }
-    }
-}
-ExitApp, % errorcode
+ExitApp, % Yunit.Use(YunitStdOut).Test(DesktopChangerTest).didFail
 return
 
 class DesktopChangerTest {
@@ -47,7 +33,7 @@ class DesktopChangerTest {
             this.tooltip := new Mock(this.hotMocks, {x: 3, y: 4, id: 5})
         }
 
-        injectsProperties() {
+        testInjectsProperties() {
             target := new DesktopChanger(this.dwm
                 , this.desktopMapper, this.tooltip)
 
@@ -56,7 +42,7 @@ class DesktopChangerTest {
             Yunit.assertEq(target.tooltip, this.tooltip)
         }
 
-        derivesProperties() {
+        testDerivesProperties() {
             target := new DesktopChanger(this.dwm
                 , this.desktopMapper, this.tooltip)
 
@@ -64,7 +50,7 @@ class DesktopChangerTest {
             Yunit.assertEq(target.nDesktops, this.nDesktops)
         }
 
-        makesNoChangesIfAllOk() {
+        testMakesNoChangesIfAllOk() {
             ;; Read only operations from #begin are ok.
 
             target := new DesktopChanger(this.dwm
@@ -74,7 +60,7 @@ class DesktopChangerTest {
             FunctionMocks.assert()
         }
 
-        addsDesktopsIfNeeded() {
+        testAddsDesktopsIfNeeded() {
             nDiff := 5
             ;; We want nDiff more than we have.
             this.dwm.nDesktops := this.nDesktops + nDiff
@@ -91,7 +77,7 @@ class DesktopChangerTest {
             FunctionMocks.assert()
         }
 
-        removeDesktopsIfNeeded() {
+        testRemoveDesktopsIfNeeded() {
             nDiff := 5
             ;; We have nDiff more than we want.
             this.hotMocks.allow(this.desktopMapper, "syncDesktopCount"
@@ -134,7 +120,7 @@ class DesktopChangerTest {
                 , this.desktopMapper, this.tooltip)
         }
 
-        makesNoChangesIfAllOk() {
+        testMakesNoChangesIfAllOk() {
             ;; Read only operations are ok.
             this.hotMocks.allow(this.desktopMapper, "currentDesktop"
                 , this.desktop)
@@ -150,7 +136,7 @@ class DesktopChangerTest {
             FunctionMocks.assert()
         }
 
-        addsDesktopsIfNeeded() {
+        testAddsDesktopsIfNeeded() {
             nDiff := 5
             ;; We have nDiff fewer than we want.
             this.hotMocks.allow(this.desktopMapper, "syncDesktopCount"
@@ -170,7 +156,7 @@ class DesktopChangerTest {
             FunctionMocks.assert()
         }
 
-        removeDesktopsIfNeeded() {
+        testRemoveDesktopsIfNeeded() {
             nDiff := 5
             ;; We want nDiff fewer than we have.
             this.dwm.nDesktops := this.nDesktops - nDiff
@@ -191,11 +177,11 @@ class DesktopChangerTest {
 
     }
 
-    addDesktopsArg(count) {
+    _addDesktopsArg(count) {
         return "i)(\^#|#\^){d\s+" count "}"
     }
 
-    deleteDesktopsArg(count) {
+    _deleteDesktopsArg(count) {
         return "i)(\^#|#\^){F4\s+" count "}"
     }
 
