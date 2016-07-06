@@ -24,7 +24,7 @@ class FunctionMocks {
                 Yunit.assertAtMost(calls.max, calls.got, msg)
             }
             for _, arg in calls.argsLike {
-                Yunit.fail("never saw an argument like: " arg)
+                Yunit.fail("never saw an argument like: " arg, -1)
             }
         }
     }

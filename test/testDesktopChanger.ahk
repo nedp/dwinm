@@ -13,27 +13,113 @@ return
 
 class DesktopChangerTest {
 
-    class __new {
+    begin(target := "") {
+        this.tester := target
 
-        begin() {
-            FunctionMocks.reset()
-            this.hotMocks := new HotMocks()
+        FunctionMocks.reset()
+        target.hotMocks := new HotMocks()
 
-            this.desktop := 10
-            this.nDesktops := 20
+        this.tester.desktop := 10
+        this.tester.nDesktops := 20
 
-            this.desktopMapper := new Mock(this.hotMocks)
-            this.hotMocks.allow(this.desktopMapper, "currentDesktop"
-                , this.desktop)
-            this.hotMocks.allow(this.desktopMapper, "syncDesktopCount"
-                , this.nDesktops)
+        this.tester.desktopMapper := new Mock(this.tester.hotMocks)
+        this.tester.hotMocks.allow(this.tester.desktopMapper, "currentDesktop"
+            , this.tester.desktop)
+        this.tester.hotMocks.allow(this.tester.desktopMapper, "syncDesktopCount"
+            , this.tester.nDesktops)
 
-            this.dwm := new Mock(this.hotMocks, {nDesktops: this.nDesktops})
+        this.tester.dwm := new Mock(this.tester.hotMocks
+            , {nDesktops: this.tester.nDesktops})
 
-            this.tooltip := new Mock(this.hotMocks, {x: 3, y: 4, id: 5})
+        this.tester.tooltip := new Mock(this.tester.hotMocks
+            , {x: 3, y: 4, id: 5})
+
+        FunctionMocks.allow("refocus")
+    }
+
+    end() {
+        this.tester.hotMocks.assert()
+        FunctionMocks.assert()
+    }
+
+    givenFewerDesktopsPresent(nDiff) {
+        ;; We have nDiff fewer than we want.
+        this.tester.hotMocks.allow(this.tester.desktopMapper
+            , "syncDesktopCount", this.tester.nDesktops - nDiff)
+    }
+
+    givenMoreDesktopsPresent(nDiff) {
+        ;; We have nDiff more than we want.
+        this.tester.hotMocks.allow(this.tester.desktopMapper
+            , "syncDesktopCount" , this.tester.nDesktops + nDiff)
+    }
+
+    givenFewerDesktopsWanted(nDiff) {
+        ;; We want nDiff fewer than we have.
+        this.tester.dwm.nDesktops := this.tester.nDesktops - nDiff
+    }
+
+    givenMoreDesktopsWanted(nDiff) {
+        ;; We want nDiff more than we have.
+        this.tester.dwm.nDesktops := this.tester.nDesktops + nDiff
+    }
+
+    expectNoChanges() {
+        ;; Read only operations like refocus are ok.
+        FunctionMocks.disallow("slowSend")
+        FunctionMocks.disallow("quickSend")
+    }
+
+    ;; Expect desktops to be added via slowSend at the rightmost desktop.
+    expectAddDesktops(count) {
+        keys := "i)(\^#|#\^){d\s+" count "}"
+        FunctionMocks.expectAtLeast("slowSend")
+            .argsLike([ keys
+                      , this.MOVE_RIGHT_ARG ])
+    }
+
+    ;; Expect desktops to be deleted via slowSend at the rightmost desktop.
+    expectRemoveDesktops(count) {
+        keys := "i)(\^#|#\^){F4\s+" count "}"
+        FunctionMocks.expectAtLeast("slowSend")
+            .argsLike([ keys
+                      , this.MOVE_RIGHT_ARG ])
+    }
+
+    rememberValues() {
+        this.rememberedValues := { dwm: this.tester.dwm
+                                 , desktopMapper: this.tester.desktopMapper
+                                 , tooltip: this.tester.tooltip
+                                 , desktop: this.tester.desktop
+                                 , nDesktops: this.tester.nDesktops }
+    }
+
+    assertSameValues() {
+        Yunit.assertEq(this.rememberedValues.dwm, this.tester.dwm)
+        Yunit.assertEq(this.rememberedValues.desktopMapper
+            , this.tester.desktopMapper)
+        Yunit.assertEq(this.rememberedValues.tooltip, this.tester.tooltip)
+        Yunit.assertEq(this.rememberedValues.desktop, this.tester.desktop)
+        Yunit.assertEq(this.rememberedValues.nDesktops, this.tester.nDesktops)
+    }
+
+    MOVE_RIGHT_ARG := "i)(\^#|#\^){Right\s+\d*}"
+
+    class Constructor {
+
+        __new() {
+            this.outer := new DesktopChangerTest()
         }
 
-        testInjectsProperties() {
+        begin() {
+            this.outer.begin(this)
+        }
+
+        end() {
+            this.outer.end()
+        }
+
+        testInjectProperties() {
             target := new DesktopChanger(this.dwm
                 , this.desktopMapper, this.tooltip)
 
@@ -42,7 +128,7 @@ class DesktopChangerTest {
             Yunit.assertEq(target.tooltip, this.tooltip)
         }
 
-        testDerivesProperties() {
+        testDeriveProperties() {
             target := new DesktopChanger(this.dwm
                 , this.desktopMapper, this.tooltip)
 
@@ -50,141 +136,76 @@ class DesktopChangerTest {
             Yunit.assertEq(target.nDesktops, this.nDesktops)
         }
 
-        testMakesNoChangesIfAllOk() {
-            ;; Read only operations from #begin are ok.
+        testMakeNoChangesIfAllOk() {
+            this.outer.expectNoChanges()
 
             target := new DesktopChanger(this.dwm
                 , this.desktopMapper, this.tooltip)
-
-            this.hotMocks.assert()
-            FunctionMocks.assert()
         }
 
-        testAddsDesktopsIfNeeded() {
+        testAddDesktopsIfNeeded() {
             nDiff := 5
-            ;; We want nDiff more than we have.
-            this.dwm.nDesktops := this.nDesktops + nDiff
+            this.outer.givenMoreDesktopsWanted(nDiff)
 
-            ;; Desktops are added via slowSend, at the end.
-            FunctionMocks.expectAtLeast("slowSend")
-                .argsLike([ this.addDesktopsArg(nDiff)
-                          , this.MOVE_RIGHT_ARG ]) ;; at the end
+            this.outer.expectAddDesktops(nDiff)
 
             target := new DesktopChanger(this.dwm
                 , this.desktopMapper, this.tooltip)
-
-            this.hotMocks.assert()
-            FunctionMocks.assert()
         }
 
         testRemoveDesktopsIfNeeded() {
             nDiff := 5
-            ;; We have nDiff more than we want.
-            this.hotMocks.allow(this.desktopMapper, "syncDesktopCount"
-                , this.nDesktops + nDiff)
+            this.outer.givenMoreDesktopsPresent(nDiff)
 
-            ;; Desktops are deleted via slowSend, at the end.
-            FunctionMocks.expectAtLeast("slowSend")
-                .argsLike([ this.deleteDesktopsArg(nDiff)
-                          , this.MOVE_RIGHT_ARG ]) ;; at the end
+            this.outer.expectRemoveDesktops(nDiff)
 
             target := new DesktopChanger(this.dwm
                 , this.desktopMapper, this.tooltip)
-
-            this.hotMocks.assert()
-            FunctionMocks.assert()
         }
-
     }
 
     class Resync {
 
+        __new() {
+            this.outer := new DesktopChangerTest()
+        }
+
         begin() {
-            FunctionMocks.reset()
-            this.hotMocks := new HotMocks()
-
-            this.desktop := 10
-            this.nDesktops := 20
-
-            this.desktopMapper := new Mock(this.hotMocks)
-            this.hotMocks.allow(this.desktopMapper, "currentDesktop"
-                , this.desktop)
-            this.hotMocks.allow(this.desktopMapper, "syncDesktopCount"
-                , this.nDesktops)
-
-            this.dwm := new Mock(this.hotMocks, {nDesktops: this.nDesktops})
-
-            this.tooltip := new Mock(this.hotMocks, {x: 3, y: 4, id: 5})
+            this.outer.begin(this)
 
             this.target := new DesktopChanger(this.dwm
                 , this.desktopMapper, this.tooltip)
         }
 
-        testMakesNoChangesIfAllOk() {
-            ;; Read only operations are ok.
-            this.hotMocks.allow(this.desktopMapper, "currentDesktop"
-                , this.desktop)
-            this.hotMocks.allow(this.desktopMapper, "syncDesktopCount"
-                , this.nDesktops)
+        end() {
+            this.outer.end()
+        }
 
-            ;; Refocusing is ok.
-            FunctionMocks.allow("refocus")
+        testMakeNoChangesIfAllOk() {
+            this.outer.rememberValues(this.target)
+            this.outer.expectNoChanges()
 
             this.target.resync()
 
-            this.hotMocks.assert()
-            FunctionMocks.assert()
+            this.outer.assertSameValues(this.target)
         }
 
-        testAddsDesktopsIfNeeded() {
+        testAddDesktopsIfNeeded() {
             nDiff := 5
-            ;; We have nDiff fewer than we want.
-            this.hotMocks.allow(this.desktopMapper, "syncDesktopCount"
-                , this.nDesktops - nDiff)
+            this.outer.givenFewerDesktopsPresent(nDiff)
 
-            ;; Desktops are added via slowSend, at the end.
-            FunctionMocks.expectAtLeast("slowSend")
-                .argsLike([ this.deleteDesktopsArg(nDiff)
-                          , this.MOVE_RIGHT_ARG ]) ;; at the end
-
-            ;; Refocusing is ok.
-            FunctionMocks.allow("refocus")
+            this.outer.expectAddDesktops(nDiff)
 
             this.target.resync()
-
-            this.hotMocks.assert()
-            FunctionMocks.assert()
         }
 
-        testRemoveDesktopsIfNeeded() {
+        testRemoveDesktopIfNeeded() {
             nDiff := 5
-            ;; We want nDiff fewer than we have.
-            this.dwm.nDesktops := this.nDesktops - nDiff
+            this.outer.givenFewerDesktopsWanted(nDiff)
 
-            ;; Desktops are deleted via slowSend, at the end.
-            FunctionMocks.expectAtLeast("slowSend")
-                .argsLike([ this.deleteDesktopsArg(nDiff)
-                          , this.MOVE_RIGHT_ARG ]) ;; at the end
-
-            ;; Refocusing is ok.
-            FunctionMocks.allow("refocus")
+            this.outer.expectRemoveDesktops(nDiff)
 
             this.target.resync()
-
-            this.hotMocks.assert()
-            FunctionMocks.assert()
         }
-
     }
-
-    _addDesktopsArg(count) {
-        return "i)(\^#|#\^){d\s+" count "}"
-    }
-
-    _deleteDesktopsArg(count) {
-        return "i)(\^#|#\^){F4\s+" count "}"
-    }
-
-    MOVE_RIGHT_ARG := "i)(\^#|#\^){Right\s+\d*}"
-
 }
