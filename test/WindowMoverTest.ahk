@@ -150,52 +150,6 @@ class WindowMoverTest {
             this.target.resync()
         }
     }
-
-    class IsAvailable {
-        __new() {
-            this.outer := new WindowMoverTest()
-        }
-
-        begin() {
-            this.outer.begin(this)
-
-            this.helpers.given32BitAvailable()
-            this.helpers.given64BitAvailable()
-            this.target := new WindowMover(this.dllManager)
-        }
-
-        end() {
-            this.outer.end()
-        }
-
-        testBothUnavailable() {
-            this.helpers.given32BitUnavailable()
-            this.helpers.given64BitUnavailable()
-
-            Yunit.assert(!this.target.isAvailable())
-        }
-
-        test32Unavailable() {
-            this.helpers.given32BitAvailable()
-            this.helpers.given64BitUnavailable()
-
-            Yunit.assert(!this.target.isAvailable())
-        }
-
-        test64Unavailable() {
-            this.helpers.given32BitUnavailable()
-            this.helpers.given64BitAvailable()
-
-            Yunit.assert(!this.target.isAvailable())
-        }
-
-        testBothAvailable() {
-            this.helpers.given32BitAvailable()
-            this.helpers.given64BitAvailable()
-
-            Yunit.assert(this.target.isAvailable())
-        }
-    }
 }
 
 class Helpers extends CarefulObject {

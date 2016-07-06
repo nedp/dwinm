@@ -5,14 +5,6 @@
         this._startUpDLLInjectorsIfNeeded()
     }
 
-    /*
-     * Check whether both the 32 and 64 bit dll injectors are available.
-     */
-    isAvailable() {
-        return this.dllManager.is32BitMoverAvailable()
-            && this.dllManager.is64BitMoverAvailable()
-    }
-
     resync() {
         this._startUpDLLInjectorsIfNeeded()
     }
