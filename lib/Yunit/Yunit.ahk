@@ -38,7 +38,7 @@ class Yunit {
 
     TestClass(results, cls) {
         environment := new cls() ; calls __New
-        for key,val in cls {
+        for key, val in cls {
             if (!IsObject(val)) {
                 continue
             }
@@ -56,14 +56,14 @@ class Yunit {
             }
             result := 0
             if (ObjHasKey(cls, "Begin") && IsFunc(cls.Begin)) {
-                result := this.try(environment, environment.begin)
+                result := this.try(environment, environment.begin, "Begin")
             }
             if (result == 0) {
-                result := this.try(environment, val)
+                result := this.try(environment, val, key)
             }
             if (ObjHasKey(cls, "End") && IsFunc(cls.End)) {
                 result := result != 0 ? result
-                                      : this.try(environment, environment.end)
+                    : this.try(environment, environment.end, "End")
             }
             if (result) {
                 this.didFail := true
@@ -74,7 +74,7 @@ class Yunit {
         }
     }
 
-    try(environment, method) {
+    try(environment, method, name) {
         try {
             %method%(environment)
             if (ObjHasKey(environment, "ExpectedException")) {
@@ -82,7 +82,7 @@ class Yunit {
             }
         } catch error {
             if (error != environment.ExpectedException) {
-                error.message := "during #" method ": " error.message
+                error.message := "during #" name ": " error.message
                 return error
             }
         }

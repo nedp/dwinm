@@ -17,22 +17,21 @@ class DesktopChangerTest {
         this.tester := target
 
         FunctionMocks.reset()
-        target.hotMocks := new HotMocks()
+        this.tester.hotMocks := new HotMocks()
+        hotMocks := this.tester.hotMocks
 
         this.tester.desktop := 10
         this.tester.nDesktops := 20
 
-        this.tester.desktopMapper := new Mock(this.tester.hotMocks)
-        this.tester.hotMocks.allow(this.tester.desktopMapper, "currentDesktop"
-            , this.tester.desktop)
-        this.tester.hotMocks.allow(this.tester.desktopMapper, "syncDesktopCount"
-            , this.tester.nDesktops)
+        this.tester.desktopMapper := hotMocks.new()
+        hotMocks.allow(this.tester.desktopMapper, "currentDesktop")
+            .andReturn(this.tester.desktop)
+        hotMocks.allow(this.tester.desktopMapper, "syncDesktopCount")
+            .andReturn(this.tester.nDesktops)
 
-        this.tester.dwm := new Mock(this.tester.hotMocks
-            , {nDesktops: this.tester.nDesktops})
+        this.tester.dwm := hotMocks.new({nDesktops: this.tester.nDesktops})
 
-        this.tester.tooltip := new Mock(this.tester.hotMocks
-            , {x: 3, y: 4, id: 5})
+        this.tester.tooltip := hotMocks.new({x: 3, y: 4, id: 5})
 
         FunctionMocks.allow("refocus")
     }
@@ -45,13 +44,13 @@ class DesktopChangerTest {
     givenFewerDesktopsPresent(nDiff) {
         ;; We have nDiff fewer than we want.
         this.tester.hotMocks.allow(this.tester.desktopMapper
-            , "syncDesktopCount", this.tester.nDesktops - nDiff)
+            , "syncDesktopCount").andReturn(this.tester.nDesktops - nDiff)
     }
 
     givenMoreDesktopsPresent(nDiff) {
         ;; We have nDiff more than we want.
         this.tester.hotMocks.allow(this.tester.desktopMapper
-            , "syncDesktopCount" , this.tester.nDesktops + nDiff)
+            , "syncDesktopCount").andReturn(this.tester.nDesktops + nDiff)
     }
 
     givenFewerDesktopsWanted(nDiff) {
@@ -74,16 +73,16 @@ class DesktopChangerTest {
     expectAddDesktops(count) {
         keys := "i)(\^#|#\^){d\s+" count "}"
         FunctionMocks.expectAtLeast("slowSend")
-            .argsLike([ keys
-                      , this.MOVE_RIGHT_ARG ])
+            .withArgsLike([ keys
+                          , this.MOVE_RIGHT_ARG ])
     }
 
     ;; Expect desktops to be deleted via slowSend at the rightmost desktop.
     expectRemoveDesktops(count) {
         keys := "i)(\^#|#\^){F4\s+" count "}"
         FunctionMocks.expectAtLeast("slowSend")
-            .argsLike([ keys
-                      , this.MOVE_RIGHT_ARG ])
+            .withArgsLike([ keys
+                          , this.MOVE_RIGHT_ARG ])
     }
 
     rememberValues() {

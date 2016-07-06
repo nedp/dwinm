@@ -6,7 +6,7 @@ rem http://stackoverflow.com/questions/138497/iterate-all-files-in-a-directory-u
 rem "C:/Program Files/AutoHotkey/AutoHotkeyU32.exe" /ErrorStdOut "testMain.ahk" 2>&1 |more
 
 rem Loop over all ahk files in tests directory
-for /r %%i in (test*.ahk) do (
+for /r %%i in (*Test.ahk) do (
 	echo ** Running %%~nxi **
 	start "testing" /B /wait "C:\Program Files\AutoHotkey\AutoHotkeyU32.exe" /ErrorStdOut %%~nxi
 	if errorlevel 1 (
