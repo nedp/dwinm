@@ -62,8 +62,8 @@ class Yunit {
                 result := this.try(environment, val)
             }
             if (ObjHasKey(cls, "End") && IsFunc(cls.End)) {
-                result := result !== 0 ? result
-                                       : this.try(environment, environment.end)
+                result := result != 0 ? result
+                                      : this.try(environment, environment.end)
             }
             if (result) {
                 this.didFail := true
