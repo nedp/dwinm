@@ -1,5 +1,7 @@
 class DesktopMapper extends CarefulObject {
 
+    static MAX_RETRIES := 3 ;; Maximum number of attempts to change desktop.
+
     static PATH := "SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\VirtualDesktops"
 
     static NULL_GUID := "{00000000-0000-0000-0000-000000000000}"
@@ -52,6 +54,25 @@ class DesktopMapper extends CarefulObject {
     currentDesktop() {
         currentId := this._currentDesktopId()
         return this._indexOfId(currentId)
+    }
+
+    /*
+     * Send the appropriate keypresses required to go to the
+     * specified desktop.
+     *
+     * Costly.
+     */
+    goToDesktop(newDesktop) {
+        difference := newDesktop - this.currentDesktop()
+        while (difference != 0 && A_Index <= this.MAX_RETRIES) {
+            if (difference > 0) {
+                quickSend("^#{Right " difference "}")
+            } else {
+                quickSend("^#{Left " (-difference) "}")
+            }
+            difference := newDesktop - this.currentDesktop()
+        }
+        return this.currentDesktop()
     }
 
     _currentDesktopId() {
