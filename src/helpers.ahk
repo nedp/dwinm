@@ -10,6 +10,11 @@ class CarefulObject {
         throw Exception("A nonexisting method was invoked. "
             . "Specifically: " this.__class "#" name, -1)
     }
+
+    __get(name, _*) {
+        throw Exception("A nonexisting property was accessed. "
+            . "Specifically: " this.__class "#" name, -1)
+    }
 }
 
 /*
