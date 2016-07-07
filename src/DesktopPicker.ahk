@@ -40,8 +40,6 @@ class DesktopPicker extends CarefulObject {
         this.otherDesktop := this.desktop
         this._changeDesktop(otherDesktop)
 
-        this._displayDesktop()
-
         Critical %wasCritical%
         Logger.trace("DesktopPicker#swapDesktops: exit")
     }
@@ -113,24 +111,13 @@ class DesktopPicker extends CarefulObject {
                         . this.recentDesktop)
             Logger.trace("hardPickDesktop: currentDesktop = "
                         . this.desktop)
-
-            this._displayDesktop()
         }
 
         Critical %wasCritical%
     }
 
     _changeDesktop(newDesktop) {
-        direction := newDesktop - this.desktop
-        distance := Abs(direction)
-        if (direction > 0) {
-            quickSend("^#{Right " distance "}")
-        } else if (direction < 0) {
-            quickSend("^#{Left " distance "}")
-        }
-
-        this.desktop := newDesktop
-
+        this.desktop := this.desktopMapper.goToDesktop(newDesktop)
         refocus()
         this._displayDesktop()
     }

@@ -13,25 +13,25 @@ return
 
 class DesktopPickerTest {
 
-    begin(tester := "") {
+    begin(tester) {
         this.tester := tester
 
         FunctionMocks.reset()
-        this.tester.hotMocks := new HotMocks()
-        hotMocks := this.tester.hotMocks
+        hotMocks := new HotMocks()
+        tester.hotMocks := hotMocks
 
-        this.tester.desktop := 10
-        this.tester.nDesktops := 20
+        tester.desktop := 10
+        tester.nDesktops := 20
 
-        this.tester.desktopMapper := hotMocks.new()
-        hotMocks.allow(this.tester.desktopMapper, "currentDesktop")
-            .andReturn(this.tester.desktop)
-        hotMocks.allow(this.tester.desktopMapper, "syncDesktopCount")
-            .andReturn(this.tester.nDesktops)
+        tester.desktopMapper := hotMocks.new()
+        hotMocks.allow(tester.desktopMapper, "currentDesktop")
+            .andReturn(tester.desktop)
+        hotMocks.allow(tester.desktopMapper, "syncDesktopCount")
+            .andReturn(tester.nDesktops)
 
-        this.tester.dwm := hotMocks.new({nDesktops: this.tester.nDesktops})
+        tester.dwm := hotMocks.new({nDesktops: tester.nDesktops})
 
-        this.tester.tooltip := hotMocks.new({x: 3, y: 4, id: 5})
+        tester.tooltip := hotMocks.new({x: 3, y: 4, id: 5})
 
         FunctionMocks.allow("refocus")
     }
@@ -39,6 +39,505 @@ class DesktopPickerTest {
     end() {
         this.tester.hotMocks.assert()
         FunctionMocks.assert()
+    }
+
+    MOVE_RIGHT_ARG := "i)(\^#|#\^){Right\s+\d*}"
+
+    class Constructor {
+
+        __new() {
+            this.outer := new DesktopPickerTest()
+            this.helper := new Helper(this)
+        }
+
+        begin() {
+            this.outer.begin(this)
+        }
+
+        end() {
+            this.outer.end()
+        }
+
+        testInjectProperties() {
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+
+            Yunit.assertEq(target.dwm, this.dwm)
+            Yunit.assertEq(target.desktopMapper, this.desktopMapper)
+            Yunit.assertEq(target.tooltip, this.tooltip)
+        }
+
+        testDeriveProperties() {
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+
+            Yunit.assertEq(this.desktop, target.desktop)
+            Yunit.assertEq(this.nDesktops, target.nDesktops)
+            Yunit.assertEq(1, target.recentDesktop)
+            Yunit.assertEq(1, target.otherDesktop)
+        }
+
+        testMakeNoChangesIfAllOk() {
+            this.helper.expectNoChanges()
+
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+        }
+
+        testAddDesktopsIfNeeded() {
+            nDiff := 5
+            this.helper.givenMoreDesktopsWanted(nDiff)
+
+            this.helper.expectAddDesktops(nDiff)
+
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+        }
+
+        testRemoveDesktopsIfNeeded() {
+            nDiff := 5
+            this.helper.givenMoreDesktopsPresent(nDiff)
+
+            this.helper.expectRemoveDesktops(nDiff)
+
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+        }
+    }
+
+    ;; Due to toggling mechanic, require target != current desktop
+    ;; for most cases.
+    class PickDesktop {
+        __new() {
+            this.outer := new DesktopPickerTest()
+            this.helper := new Helper(this)
+        }
+
+        begin() {
+            this.outer.begin(this)
+
+            this.target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+        }
+
+        end() {
+            this.outer.end()
+        }
+
+        shouldDelegateGoToDesktop() {
+            targetDesktop := this.target.desktop - 1
+
+            this.helper.expectSuccessfulGoToDesktop(targetDesktop)
+
+            this.target.pickDesktop(targetDesktop)
+        }
+
+        shouldSetTheNewDesktopOnSuccess() {
+            targetDesktop := this.target.desktop - 1
+
+            this.helper.allowGoToDesktop(targetDesktop)
+
+            this.target.pickDesktop(targetDesktop)
+
+            Yunit.assertEq(targetDesktop, this.target.desktop)
+        }
+
+        shouldSetTheNewDesktopOnFailure() {
+            targetDesktop := this.target.desktop - 1
+            resultingDesktop := targetDesktop + 5
+
+            this.helper.allowGoToDesktop(resultingDesktop)
+
+            this.target.pickDesktop(targetDesktop)
+
+            Yunit.assertEq(resultingDesktop, this.target.desktop)
+        }
+
+        shouldRefocus() {
+            targetDesktop := this.target.desktop - 1
+
+            this.helper.allowGoToDesktop(targetDesktop)
+            FunctionMocks.expect("refocus", 1)
+
+            this.target.pickDesktop(targetDesktop)
+        }
+
+        shouldSetTheRecentDesktopOnSuccess() {
+            targetDesktop := this.target.desktop - 1
+            originalDesktop := this.target.desktop
+
+            this.helper.allowGoToDesktop(targetDesktop)
+
+            this.target.pickDesktop(targetDesktop)
+
+            Yunit.assertEq(originalDesktop, this.target.recentDesktop)
+        }
+
+        shouldSetTheRecentDesktopOnFailure() {
+            targetDesktop := this.target.desktop - 1
+            originalDesktop := this.target.desktop
+            resultingDesktop := targetDesktop + 15
+
+            this.helper.allowGoToDesktop(targetDesktop)
+
+            this.target.pickDesktop(targetDesktop)
+
+            Yunit.assertEq(originalDesktop, this.target.recentDesktop)
+        }
+
+        shouldNotChangeTheOtherDesktopOnSuccess() {
+            targetDesktop := this.target.desktop - 1
+            otherDesktop := this.target.otherDesktop
+
+            this.helper.allowGoToDesktop(targetDesktop)
+
+            this.target.pickDesktop(targetDesktop)
+
+            Yunit.assertEq(otherDesktop, this.target.otherDesktop)
+        }
+
+        shouldNotChangeTheOtherDesktopOnFailure() {
+            targetDesktop := this.target.desktop - 1
+            resultingDesktop := targetDesktop + 20
+            otherDesktop := this.target.otherDesktop
+
+            this.helper.allowGoToDesktop(resultingDesktop)
+
+            this.target.pickDesktop(targetDesktop)
+
+            Yunit.assertEq(otherDesktop, this.target.otherDesktop)
+        }
+
+        shouldDoNothingIfSuccessfulTwiceTargettingRecent() {
+            recentDesktop := this.target.desktop - 4
+            this.target.recentDesktop := recentDesktop
+            originalDesktop := this.target.desktop
+            this.helper.rememberValues()
+
+            this.helper.allowGoToDesktop(recentDesktop)
+
+            this.target.pickDesktop(recentDesktop)
+
+            this.helper.expectSuccessfulGoToDesktop(originalDesktop)
+
+            this.target.pickDesktop(recentDesktop)
+
+            this.helper.assertSameValues()
+        }
+
+        shouldReturnOnRepeatSuccess() {
+            originalDesktop := this.target.desktop
+            recentDesktop := originalDesktop + 20
+            this.target.recentDesktop := recentDesktop
+
+            this.helper.expectSuccessfulGoToDesktop(recentDesktop)
+
+            this.target.pickDesktop(originalDesktop)
+
+            Yunit.assertEq(originalDesktop, this.target.recentDesktop)
+            Yunit.assertEq(recentDesktop, this.target.desktop)
+        }
+
+        shouldReturnOnRepeatFailure() {
+            originalDesktop := this.target.desktop
+            recentDesktop := originalDesktop + 20
+            this.target.recentDesktop := recentDesktop
+            resultingDesktop := originalDesktop + 40
+
+            this.helper.allowGoToDesktop(resultingDesktop)
+
+            this.target.pickDesktop(originalDesktop)
+
+            Yunit.assertEq(originalDesktop, this.target.recentDesktop)
+            Yunit.assertEq(resultingDesktop, this.target.desktop)
+        }
+    }
+
+    ;; Due to toggling mechanic, require target != current desktop
+    ;; for most cases.
+    class HardPickDesktop {
+        __new() {
+            this.outer := new DesktopPickerTest()
+            this.helper := new Helper(this)
+        }
+
+        begin() {
+            this.outer.begin(this)
+
+            this.target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+        }
+
+        end() {
+            this.outer.end()
+        }
+
+        shouldDelegateGoToDesktop() {
+            targetDesktop := this.target.desktop - 1
+
+            this.helper.expectSuccessfulGoToDesktop(targetDesktop)
+
+            this.target.hardPickDesktop(targetDesktop)
+        }
+
+        shouldSetTheNewDesktopOnSuccess() {
+            targetDesktop := this.target.desktop - 1
+
+            this.helper.allowGoToDesktop(targetDesktop)
+
+            this.target.hardPickDesktop(targetDesktop)
+
+            Yunit.assertEq(targetDesktop, this.target.desktop)
+        }
+
+        shouldSetTheNewDesktopOnFailure() {
+            targetDesktop := this.target.desktop - 1
+            resultingDesktop := targetDesktop + 5
+
+            this.helper.allowGoToDesktop(resultingDesktop)
+
+            this.target.hardPickDesktop(targetDesktop)
+
+            Yunit.assertEq(resultingDesktop, this.target.desktop)
+        }
+
+        shouldRefocus() {
+            targetDesktop := this.target.desktop - 1
+
+            this.helper.allowGoToDesktop(targetDesktop)
+            FunctionMocks.expect("refocus", 1)
+
+            this.target.hardPickDesktop(targetDesktop)
+        }
+
+        shouldSetTheOtherDesktopOnSuccess() {
+            targetDesktop := this.target.desktop - 1
+            originalDesktop := this.target.desktop
+
+            this.helper.allowGoToDesktop(targetDesktop)
+
+            this.target.hardPickDesktop(targetDesktop)
+
+            Yunit.assertEq(originalDesktop, this.target.otherDesktop)
+        }
+
+        shouldSetTheOtherDesktopOnFailure() {
+            targetDesktop := this.target.desktop - 1
+            originalDesktop := this.target.desktop
+            resultingDesktop := targetDesktop + 15
+
+            this.helper.allowGoToDesktop(targetDesktop)
+
+            this.target.hardPickDesktop(targetDesktop)
+
+            Yunit.assertEq(originalDesktop, this.target.otherDesktop)
+        }
+
+        shouldNotChangeTheRecentDesktopOnSuccess() {
+            targetDesktop := this.target.desktop - 1
+            recentDesktop := this.target.recentDesktop
+
+            this.helper.allowGoToDesktop(targetDesktop)
+
+            this.target.hardPickDesktop(targetDesktop)
+
+            Yunit.assertEq(recentDesktop, this.target.recentDesktop)
+        }
+
+        shouldNotChangeTheRecentDesktopOnFailure() {
+            targetDesktop := this.target.desktop - 1
+            resultingDesktop := targetDesktop + 20
+            recentDesktop := this.target.recentDesktop
+
+            this.helper.allowGoToDesktop(resultingDesktop)
+
+            this.target.hardPickDesktop(targetDesktop)
+
+            Yunit.assertEq(recentDesktop, this.target.recentDesktop)
+        }
+
+        shouldDoNothingOnRepeat() {
+            originalDesktop := this.target.desktop
+            this.helper.rememberValues()
+
+            this.hotMocks.disallow(this.target.desktopMapper, "goToDesktop")
+            FunctionMocks.disallow("refocus")
+
+            this.target.hardPickDesktop(originalDesktop)
+
+            this.helper.assertSameValues()
+        }
+    }
+
+    class SwapDesktops {
+        __new() {
+            this.outer := new DesktopPickerTest()
+            this.helper := new Helper(this)
+        }
+
+        begin() {
+            this.outer.begin(this)
+
+            this.target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+
+            this.target.otherDesktop := this.target.desktop + 1
+        }
+
+        end() {
+            this.outer.end()
+        }
+
+        shouldDelegateGoToDesktop() {
+            otherDesktop := this.target.otherDesktop
+
+            this.helper.expectSuccessfulGoToDesktop(otherDesktop)
+
+            this.target.swapDesktops()
+        }
+
+        shouldSetTheNewDesktopOnSuccess() {
+            otherDesktop := this.target.otherDesktop
+
+            this.helper.allowGoToDesktop(otherDesktop)
+
+            this.target.swapDesktops()
+
+            Yunit.assertEq(otherDesktop, this.target.desktop)
+        }
+
+        shouldSetTheNewDesktopOnFailure() {
+            otherDesktop := this.target.otherDesktop
+            resultingDesktop := otherDesktop + 5
+
+            this.helper.allowGoToDesktop(resultingDesktop)
+
+            this.target.swapDesktops()
+
+            Yunit.assertEq(resultingDesktop, this.target.desktop)
+        }
+
+        shouldRefocus() {
+            this.helper.allowGoToDesktop(this.target.otherDesktop)
+            FunctionMocks.expect("refocus", 1)
+
+            this.target.swapDesktops()
+        }
+
+        shouldSetTheOtherDesktopOnSuccess() {
+            otherDesktop := this.target.otherDesktop
+            originalDesktop := this.target.desktop
+
+            this.helper.allowGoToDesktop(otherDesktop)
+
+            this.target.swapDesktops()
+
+            Yunit.assertEq(originalDesktop, this.target.otherDesktop)
+        }
+
+        shouldSetTheOtherDesktopOnFailure() {
+            otherDesktop := this.target.otherDesktop
+            originalDesktop := this.target.desktop
+            resultingDesktop := originalDesktop + 15
+
+            this.helper.allowGoToDesktop(resultingDesktop)
+
+            this.target.swapDesktops()
+
+            Yunit.assertEq(originalDesktop, this.target.otherDesktop)
+        }
+
+        shouldSetTheRecentDesktopOnSuccess() {
+            recentDesktop := this.target.recentDesktop
+
+            this.helper.allowGoToDesktop(this.target.otherDesktop)
+
+            this.target.swapDesktops()
+
+            Yunit.assertEq(recentDesktop, this.target.recentDesktop)
+        }
+
+        shouldSetTheRecentDesktopOnFailure() {
+            recentDesktop := this.target.recentDesktop
+            resultingDesktop := this.target.otherDesktop + 10
+
+            this.helper.allowGoToDesktop(resultingDesktop)
+
+            this.target.swapDesktops()
+
+            Yunit.assertEq(recentDesktop, this.target.recentDesktop)
+        }
+
+        shouldDoNothingIfSuccessfulTwice() {
+            otherDesktop := this.target.otherDesktop
+            originalDesktop := this.target.desktop
+            this.helper.rememberValues()
+
+            this.helper.allowGoToDesktop(otherDesktop)
+
+            this.target.swapDesktops()
+
+            this.helper.expectSuccessfulGoToDesktop(originalDesktop)
+
+            this.target.swapDesktops()
+
+            this.helper.assertSameValues()
+        }
+
+    }
+
+    class Resync {
+
+        __new() {
+            this.outer := new DesktopPickerTest()
+            this.helper := new Helper(this)
+        }
+
+        begin() {
+            this.outer.begin(this)
+
+            this.target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+        }
+
+        end() {
+            this.outer.end()
+        }
+
+        testMakeNoChangesIfAllOk() {
+            this.helper.rememberValues(this.target)
+            this.helper.expectNoChanges()
+
+            this.target.resync()
+
+            this.helper.assertSameValues(this.target)
+        }
+
+        testAddDesktopsIfNeeded() {
+            nDiff := 5
+            this.helper.givenFewerDesktopsPresent(nDiff)
+
+            this.helper.expectAddDesktops(nDiff)
+
+            this.target.resync()
+        }
+
+        testRemoveDesktopIfNeeded() {
+            nDiff := 5
+            this.helper.givenFewerDesktopsWanted(nDiff)
+
+            this.helper.expectRemoveDesktops(nDiff)
+
+            this.target.resync()
+        }
+    }
+}
+
+class Helper extends CarefulObject {
+
+    __new(tester) {
+        this.tester := tester
+        this.outer := tester.outer
     }
 
     givenFewerDesktopsPresent(nDiff) {
@@ -74,7 +573,7 @@ class DesktopPickerTest {
         keys := "i)(\^#|#\^){d\s+" count "}"
         FunctionMocks.expectAtLeast("slowSend")
             .withArgsLike([ keys
-                          , this.MOVE_RIGHT_ARG ])
+                          , this.outer.MOVE_RIGHT_ARG ])
     }
 
     ;; Expect desktops to be deleted via slowSend at the rightmost desktop.
@@ -82,7 +581,20 @@ class DesktopPickerTest {
         keys := "i)(\^#|#\^){F4\s+" count "}"
         FunctionMocks.expectAtLeast("slowSend")
             .withArgsLike([ keys
-                          , this.MOVE_RIGHT_ARG ])
+                          , this.outer.MOVE_RIGHT_ARG ])
+    }
+
+    expectSuccessfulGoToDesktop(targetDesktop) {
+        this.tester.hotMocks
+            .expect(this.tester.desktopMapper, "goToDesktop", 1)
+            .withArgsLike([targetDesktop])
+            .andReturn(targetDesktop)
+    }
+
+    allowGoToDesktop(resultingDesktop) {
+        this.tester.hotMocks
+            .allow(this.tester.desktopMapper, "goToDesktop")
+            .andReturn(resultingDesktop)
     }
 
     rememberValues() {
@@ -99,127 +611,18 @@ class DesktopPickerTest {
     assertSameValues() {
         msg := "target's properties changed unexpectedly "
         Yunit.assertEq(this.rememberedValues.dwm
-            , this.tester.target.dwm, msg "(dwm)")
+            , this.tester.target.dwm, msg "(dwm)", -1)
         Yunit.assertEq(this.rememberedValues.desktopMapper
-            , this.tester.target.desktopMapper, msg "(desktopMapper)")
+            , this.tester.target.desktopMapper, msg "(desktopMapper)", -1)
         Yunit.assertEq(this.rememberedValues.tooltip
-            , this.tester.target.tooltip, msg "(tooltip)")
+            , this.tester.target.tooltip, msg "(tooltip)", -1)
         Yunit.assertEq(this.rememberedValues.desktop
-            , this.tester.target.desktop, msg "(desktop)")
+            , this.tester.target.desktop, msg "(desktop)", -1)
         Yunit.assertEq(this.rememberedValues.nDesktops
-            , this.tester.target.nDesktops, msg "(nDesktops)")
+            , this.tester.target.nDesktops, msg "(nDesktops)", -1)
         Yunit.assertEq(this.rememberedValues.recentDesktop
-            , this.tester.target.recentDesktop, msg "(recentDesktop)")
+            , this.tester.target.recentDesktop, msg "(recentDesktop)", -1)
         Yunit.assertEq(this.rememberedValues.otherDesktop
-            , this.tester.target.otherDesktop, msg "(otherDesktop)")
+            , this.tester.target.otherDesktop, msg "(otherDesktop)", -1)
     }
-
-    MOVE_RIGHT_ARG := "i)(\^#|#\^){Right\s+\d*}"
-
-    class Constructor {
-
-        __new() {
-            this.outer := new DesktopPickerTest()
-        }
-
-        begin() {
-            this.outer.begin(this)
-        }
-
-        end() {
-            this.outer.end()
-        }
-
-        testInjectProperties() {
-            target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
-
-            Yunit.assertEq(target.dwm, this.dwm)
-            Yunit.assertEq(target.desktopMapper, this.desktopMapper)
-            Yunit.assertEq(target.tooltip, this.tooltip)
-        }
-
-        testDeriveProperties() {
-            target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
-
-            Yunit.assertEq(target.desktop, this.desktop)
-            Yunit.assertEq(target.nDesktops, this.nDesktops)
-            Yunit.assertEq(1, target.recentDesktop)
-            Yunit.assertEq(1, target.otherDesktop)
-        }
-
-        testMakeNoChangesIfAllOk() {
-            this.outer.expectNoChanges()
-
-            target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
-        }
-
-        testAddDesktopsIfNeeded() {
-            nDiff := 5
-            this.outer.givenMoreDesktopsWanted(nDiff)
-
-            this.outer.expectAddDesktops(nDiff)
-
-            target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
-        }
-
-        testRemoveDesktopsIfNeeded() {
-            nDiff := 5
-            this.outer.givenMoreDesktopsPresent(nDiff)
-
-            this.outer.expectRemoveDesktops(nDiff)
-
-            target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
-        }
-    }
-
-    class Resync {
-
-        __new() {
-            this.outer := new DesktopPickerTest()
-        }
-
-        begin() {
-            this.outer.begin(this)
-
-            this.target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
-        }
-
-        end() {
-            this.outer.end()
-        }
-
-        testMakeNoChangesIfAllOk() {
-            this.outer.rememberValues(this.target)
-            this.outer.expectNoChanges()
-
-            this.target.resync()
-
-            this.outer.assertSameValues(this.target)
-        }
-
-        testAddDesktopsIfNeeded() {
-            nDiff := 5
-            this.outer.givenFewerDesktopsPresent(nDiff)
-
-            this.outer.expectAddDesktops(nDiff)
-
-            this.target.resync()
-        }
-
-        testRemoveDesktopIfNeeded() {
-            nDiff := 5
-            this.outer.givenFewerDesktopsWanted(nDiff)
-
-            this.outer.expectRemoveDesktops(nDiff)
-
-            this.target.resync()
-        }
-    }
-
 }
