@@ -11,6 +11,13 @@ class FunctionMocks {
 
     assert() {
         for function, calls in this.calls {
+            for _, arg in calls.argsLike {
+                Yunit.fail("never saw an argument like: " arg, -1)
+            }
+            if (calls.impl) {
+                FileAppend DEBUG, *
+                calls.impl.assert()
+            }
             if (!calls.min && !calls.max) {
                 continue
             }
@@ -24,9 +31,6 @@ class FunctionMocks {
             }
             if (calls.max) {
                 Yunit.assertAtMost(calls.max, calls.got, msg)
-            }
-            for _, arg in calls.argsLike {
-                Yunit.fail("never saw an argument like: " arg, -1)
             }
         }
     }
@@ -56,6 +60,18 @@ class FunctionMocks {
 
         allow := this.calls[name].allow
         Yunit.assert(allow, "unexpected function call: " name, -2)
+
+        if (this.calls[name].onlyArgsLike) {
+            for _, got in args {
+                ok := false
+                for _, want in calls.onlyArgsLike {
+                    if (want == got || RegExMatch(got, want)) {
+                        ok := true
+                    }
+                }
+                Yunit.assert(ok, "received unexpected argument: " got, -2)
+            }
+        }
 
         for i, want in this.calls[name].argsLike {
             for j, got in args {
@@ -141,10 +157,18 @@ class HotMocks extends CarefulObject {
     assert() {
         for mock, methods in this.calls {
             for method, calls in methods {
-                msg := "Expectation failed for " method " calls."
+                for _, arg in calls.argsLike {
+                    Yunit.fail("never saw an argument like: " arg)
+                }
+                if (calls.impl) {
+                    calls.impl.assert()
+                }
+
                 if (!calls.min && !calls.max) {
                     continue
                 }
+
+                msg := "Expectation failed for " method " calls."
                 if (calls.min == calls.max) {
                     Yunit.assertEq(calls.min, calls.got, msg)
                     continue
@@ -154,9 +178,6 @@ class HotMocks extends CarefulObject {
                 }
                 if (calls.max) {
                     Yunit.assertAtMost(calls.max, calls.got, msg)
-                }
-                for _, arg in calls.argsLike {
-                    Yunit.fail("never saw an argument like: " arg)
                 }
             }
         }
@@ -191,6 +212,12 @@ class Expectation extends CarefulObject {
 
     withArgsLike(args) {
         this.calls.argsLike := args
+        return this
+    }
+
+    withOnlyArgsLike(args) {
+        this.calls.onlyArgsLike := args
+        return this
     }
 
     andCall(callable) {
@@ -211,7 +238,7 @@ class CarefulObject {
     }
 }
 
-class Flag {
+class Flag extends CarefulObject {
 
     __new(value) {
         this.value := value
@@ -221,9 +248,12 @@ class Flag {
         return this.value
     }
 
+    assert() {
+    }
+
 }
 
-class Fuse {
+class Fuse extends CarefulObject {
 
     __new(flag, nRemaining, newValue) {
         this.flag := flag
@@ -238,4 +268,36 @@ class Fuse {
         this.nRemaining -= 1
     }
 
+    assert() {
+    }
+
+}
+
+class PatternQuota extends CarefulObject {
+
+    nTimes := 0
+
+    __new(quota, default, pattern, subGroup, actionName := "do something") {
+        this.quota := quota
+        this.default := default
+        this.pattern := pattern
+        this.subGroup := subGroup
+        this.actionName := actionName
+    }
+
+    call(arg) {
+        iTimes := 0
+        if (RegExMatch(arg, pattern)) {
+            iTimes := this.RegExReplace(arg, pattern, "$" this.subGroup)
+            if (iTimes = "") {
+                iTimes := this.default
+            }
+        }
+        this.nTimes += iTimes
+    }
+
+    assert() {
+        Yunit.assertEq(this.quota, this.nTimes
+            , "didn't " this.actionName " the correct number of times")
+    }
 }
