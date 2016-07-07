@@ -6,8 +6,5 @@ install:
 build_script:
   - build.bat
 
-before_test:
-  - cmd: cd test
-
 test_script:
   - test.bat
