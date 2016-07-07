@@ -74,6 +74,7 @@ class DesktopMapper extends CarefulObject {
      */
     fastCurrentDesktop() {
         hwnd := this._fastHwnd()
+        Logger.trace(this.__class "#fastCurrentDesktop: hwnd=" hwnd)
         if (hwnd) {
             this.currendId := this._fastDesktopId(hwnd)
         }

@@ -82,5 +82,20 @@ getIndexFromArray(searchFor, array) {
  * Refocus on the topmost window in the current desktop.
  */
 refocus() {
+    ;; Suspends hotkeys because the simulated shift can cause windows
+    ;; to be moved and it's a real pain in the arse.
+    ;; TODO fix it so this isn't required.
+    ;; The clunkiness of having hotkeys suspended is only slightly less
+    ;; of a pain in the arse.
+    wasCritical := A_IsCritical
+    Critical
+    wasSuspended := A_IsSuspended
+    Suspend
+
     slowSend("!+{Esc}!{Esc}") ;; quickSend is dodgy with focusing.
+
+    if (!wasSuspended) {
+        Suspend Off
+    }
+    Critical %wasCritical%
 }

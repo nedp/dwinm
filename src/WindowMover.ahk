@@ -14,6 +14,7 @@
      * returning zero on success or an error code on failure.
      */
     moveActiveToDesktop(desktop) {
+        Logger.trace(this.__class "#moveActiveToDesktop: ENTER")
         wasCritical := A_IsCritical
         Critical
 
@@ -32,6 +33,7 @@
 
         Critical %wasCritical%
 
+        Logger.trace(this.__class "#moveActiveToDesktop: EXIT")
         return ErrorLevel
     }
 
