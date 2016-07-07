@@ -86,20 +86,32 @@ class DesktopPickerTest {
     }
 
     rememberValues() {
-        this.rememberedValues := { dwm: this.tester.dwm
-                                 , desktopMapper: this.tester.desktopMapper
-                                 , tooltip: this.tester.tooltip
-                                 , desktop: this.tester.desktop
-                                 , nDesktops: this.tester.nDesktops }
+        this.rememberedValues
+            := { dwm: this.tester.target.dwm
+               , desktopMapper: this.tester.target.desktopMapper
+               , tooltip: this.tester.target.tooltip
+               , desktop: this.tester.target.desktop
+               , nDesktops: this.tester.target.nDesktops
+               , recentDesktop: this.tester.target.recentDesktop
+               , otherDesktop: this.tester.target.otherDesktop }
     }
 
     assertSameValues() {
-        Yunit.assertEq(this.rememberedValues.dwm, this.tester.dwm)
+        msg := "target's properties changed unexpectedly "
+        Yunit.assertEq(this.rememberedValues.dwm
+            , this.tester.target.dwm, msg "(dwm)")
         Yunit.assertEq(this.rememberedValues.desktopMapper
-            , this.tester.desktopMapper)
-        Yunit.assertEq(this.rememberedValues.tooltip, this.tester.tooltip)
-        Yunit.assertEq(this.rememberedValues.desktop, this.tester.desktop)
-        Yunit.assertEq(this.rememberedValues.nDesktops, this.tester.nDesktops)
+            , this.tester.target.desktopMapper, msg "(desktopMapper)")
+        Yunit.assertEq(this.rememberedValues.tooltip
+            , this.tester.target.tooltip, msg "(tooltip)")
+        Yunit.assertEq(this.rememberedValues.desktop
+            , this.tester.target.desktop, msg "(desktop)")
+        Yunit.assertEq(this.rememberedValues.nDesktops
+            , this.tester.target.nDesktops, msg "(nDesktops)")
+        Yunit.assertEq(this.rememberedValues.recentDesktop
+            , this.tester.target.recentDesktop, msg "(recentDesktop)")
+        Yunit.assertEq(this.rememberedValues.otherDesktop
+            , this.tester.target.otherDesktop, msg "(otherDesktop)")
     }
 
     MOVE_RIGHT_ARG := "i)(\^#|#\^){Right\s+\d*}"
@@ -133,6 +145,8 @@ class DesktopPickerTest {
 
             Yunit.assertEq(target.desktop, this.desktop)
             Yunit.assertEq(target.nDesktops, this.nDesktops)
+            Yunit.assertEq(1, target.recentDesktop)
+            Yunit.assertEq(1, target.otherDesktop)
         }
 
         testMakeNoChangesIfAllOk() {
@@ -207,4 +221,5 @@ class DesktopPickerTest {
             this.target.resync()
         }
     }
+
 }
