@@ -1,6 +1,6 @@
 #Include %A_ScriptDir%/helpers.ahk
 
-#Include %A_ScriptDir%/DesktopChanger.ahk
+#Include %A_ScriptDir%/DesktopPicker.ahk
 #Include %A_ScriptDir%/DesktopMapper.ahk
 #Include %A_ScriptDir%/DLLManager.ahk
 #Include %A_ScriptDir%/HotkeyManager.ahk
@@ -356,11 +356,12 @@ class DWinM extends CarefulObject {
 
     dllManager := new DLLManager()
 
-    desktopChanger
-        := new DesktopChanger(this, this.desktopMapper, this.DESKTOP_TOOLTIP)
+    desktopPicker
+        := new DesktopPicker(this, this.desktopMapper
+        , this.DESKTOP_TOOLTIP)
     windowMover := new WindowMover(this.dllManager)
     hotkeyManager
-        := new HotkeyManager(this.desktopChanger, this.windowMover, this)
+        := new HotkeyManager(this.desktopPicker, this.windowMover, this)
 
     resync() {
         wasCritical := A_IsCritical
@@ -372,7 +373,7 @@ class DWinM extends CarefulObject {
         wasSuspended := A_IsSuspended
         Suspend
 
-        this.desktopChanger.resync()
+        this.desktopPicker.resync()
         this.windowMover.resync()
 
         if (!wasSuspended) {

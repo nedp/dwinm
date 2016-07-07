@@ -1,7 +1,7 @@
 class HotkeyManager extends CarefulObject {
 
-    __new(desktopChanger, windowMover, dwm) {
-        this.desktopChanger := desktopChanger
+    __new(desktopPicker, windowMover, dwm) {
+        this.desktopPicker := desktopPicker
         this.windowMover := windowMover
         this.dwm := dwm
     }
@@ -30,7 +30,7 @@ class HotkeyManager extends CarefulObject {
      * where <N> is a number key.
      */
     pickDesktop(prefix) {
-        object := this.desktopChanger
+        object := this.desktopPicker
         method := "pickDesktop"
 
         Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
@@ -49,7 +49,7 @@ class HotkeyManager extends CarefulObject {
     swapAndPickDesktop(prefix) {
         Logger.trace("HotkeyManager#swapAndPickDesktop: prefix=" prefix)
 
-        object := this.desktopChanger
+        object := this.desktopPicker
         method := "hardPickDesktop"
 
         Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
@@ -63,7 +63,7 @@ class HotkeyManager extends CarefulObject {
      * Set up a hotkey to go to the 'other' desktop.
      */
     swapDesktops(hotkeyKey) {
-        object := this.desktopChanger
+        object := this.desktopPicker
         method := "swapDesktops"
 
         Hotkey If, DWM.hasMode(DWM.Modes.DESKTOP)
