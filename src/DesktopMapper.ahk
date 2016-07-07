@@ -33,6 +33,7 @@ class DesktopMapper extends CarefulObject {
             this.desktopIds.push(this._idFromReg(desktopId))
             start += REG_ID_LENGTH
         }
+        this.currentId := this._currentDesktopId()
     }
 
     /*
@@ -51,9 +52,23 @@ class DesktopMapper extends CarefulObject {
      *
      * Costly.
      */
-    currentDesktop() {
-        currentId := this._currentDesktopId()
-        return this._indexOfId(currentId)
+    syncCurrentDesktop() {
+        this.currentId := this._currentDesktopId()
+        return this._indexOfId(this.currentId)
+    }
+
+    /*
+     * Report the estimated current desktop by finding the
+     * desktop of the topmost window.
+     *
+     * If such a window is not available, the current desktop
+     * will be estimated based on operations taken place since
+     * the desktop was last reliably checked.
+     *
+     * Cheap.
+     */
+    fastCurrentDesktop() {
+        return this._indexOfId(this.currentId)
     }
 
     /*
@@ -63,6 +78,7 @@ class DesktopMapper extends CarefulObject {
      * Costly.
      */
     goToDesktop(newDesktop) {
+        Logger.trace(this.__class "#goToDesktop: ENTRY")
         difference := newDesktop - this.currentDesktop()
         while (difference != 0 && A_Index <= this.MAX_RETRIES) {
             if (difference > 0) {
@@ -72,7 +88,8 @@ class DesktopMapper extends CarefulObject {
             }
             difference := newDesktop - this.currentDesktop()
         }
-        return this.currentDesktop()
+        Logger.trace(this.__class "#goToDesktop: EXIT")
+        return this.fastCurrentDesktop()
     }
 
     _currentDesktopId() {
@@ -88,6 +105,9 @@ class DesktopMapper extends CarefulObject {
         }
 
         if (!guid || guid == this.NULL_GUID) {
+            if (hwnd && RegExMatch(class, this.BAD_CLASS_REGEX) <= 0) {
+                Logger.warning("Bad GUID from good HWND")
+            }
             Logger.trace("guid = " guid ", falling back")
             guid := this._fallbackCurrentDesktopGuid()
         }
