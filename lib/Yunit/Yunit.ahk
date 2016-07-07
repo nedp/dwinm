@@ -22,8 +22,7 @@ class Yunit {
         for key, module in instance.base.Modules {
             instance.Modules[key] := new module(instance)
         }
-        for i, cls in classes {
-            instance.current := i
+        for _, cls in classes {
             instance.results[cls.__class] := obj := {}
             instance.TestClass(obj, cls)
         }
@@ -44,7 +43,7 @@ class Yunit {
             }
             if (!IsFunc(val) && ObjHasKey(val, "__class")) {
                 ; New category
-                this.classes.InsertAt(++this.current, val)
+                this.classes.push(val)
                 continue
             }
             if (!IsFunc(val)) {
@@ -56,7 +55,7 @@ class Yunit {
                 name := SubStr(key, 5)
             }
             if (SubStr(key, 1, 6) = "should") {
-                name := SubStr(key, 7)
+                name := key
             }
             if (!name) {
                 continue
