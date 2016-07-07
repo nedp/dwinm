@@ -24,10 +24,6 @@ class DesktopPickerTest {
         tester.nDesktops := 20
 
         tester.desktopMapper := hotMocks.new()
-        hotMocks.allow(tester.desktopMapper, "currentDesktop")
-            .andReturn(tester.desktop)
-        hotMocks.allow(tester.desktopMapper, "syncDesktopCount")
-            .andReturn(tester.nDesktops)
 
         tester.dwm := hotMocks.new({nDesktops: tester.nDesktops})
 
@@ -44,7 +40,6 @@ class DesktopPickerTest {
     MOVE_RIGHT_ARG := "i)(\^#|#\^){Right\s+\d*}"
 
     class Constructor {
-
         __new() {
             this.outer := new DesktopPickerTest()
             this.helper := new Helper(this)
@@ -52,13 +47,17 @@ class DesktopPickerTest {
 
         begin() {
             this.outer.begin(this)
+            this.hotMocks.allow(this.desktopMapper, "syncCurrentDesktop")
+                .andReturn(this.desktop)
         }
 
         end() {
             this.outer.end()
         }
 
-        testInjectProperties() {
+        shouldInjectProperties() {
+            this.helper.givenCorrectDesktopCount()
+
             target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
 
@@ -67,7 +66,9 @@ class DesktopPickerTest {
             Yunit.assertEq(target.tooltip, this.tooltip)
         }
 
-        testDeriveProperties() {
+        shouldDeriveProperties() {
+            this.helper.givenCorrectDesktopCount()
+
             target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
 
@@ -77,14 +78,16 @@ class DesktopPickerTest {
             Yunit.assertEq(1, target.otherDesktop)
         }
 
-        testMakeNoChangesIfAllOk() {
+        shouldMakeNoChangesIfAllOk() {
+            this.helper.givenCorrectDesktopCount()
+
             this.helper.expectNoChanges()
 
             target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
         }
 
-        testAddDesktopsIfNeeded() {
+        shouldAddDesktopsIfNeeded() {
             nDiff := 5
             this.helper.givenMoreDesktopsWanted(nDiff)
 
@@ -94,11 +97,23 @@ class DesktopPickerTest {
                 , this.desktopMapper, this.tooltip)
         }
 
-        testRemoveDesktopsIfNeeded() {
+        shouldRemoveDesktopsIfNeeded() {
             nDiff := 5
             this.helper.givenMoreDesktopsPresent(nDiff)
 
             this.helper.expectRemoveDesktops(nDiff)
+
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+        }
+
+        ;; Test included for explicitness, even though covered
+        ;; by other tests/helpers.
+        shouldSyncValues() {
+            this.hotMocks.expect(this.desktopMapper, "syncDesktopCount")
+                         .andReturn(this.nDesktops)
+            this.hotMocks.expect(this.desktopMapper, "syncCurrentDesktop")
+                         .andReturn(this.desktop)
 
             target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
@@ -116,8 +131,7 @@ class DesktopPickerTest {
         begin() {
             this.outer.begin(this)
 
-            this.target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
+            this.helper.givenAConstructedTarget()
         }
 
         end() {
@@ -264,8 +278,7 @@ class DesktopPickerTest {
         begin() {
             this.outer.begin(this)
 
-            this.target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
+            this.helper.givenAConstructedTarget()
         }
 
         end() {
@@ -378,8 +391,7 @@ class DesktopPickerTest {
         begin() {
             this.outer.begin(this)
 
-            this.target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
+            this.helper.givenAConstructedTarget()
 
             this.target.otherDesktop := this.target.desktop + 1
         }
@@ -483,11 +495,9 @@ class DesktopPickerTest {
 
             this.helper.assertSameValues()
         }
-
     }
 
     class Resync {
-
         __new() {
             this.outer := new DesktopPickerTest()
             this.helper := new Helper(this)
@@ -496,41 +506,58 @@ class DesktopPickerTest {
         begin() {
             this.outer.begin(this)
 
-            this.target := new DesktopPicker(this.dwm
-                , this.desktopMapper, this.tooltip)
+            this.helper.givenAConstructedTarget()
+
+            this.hotMocks.allow(this.desktopMapper, "syncCurrentDesktop")
+                .andReturn(this.desktop)
         }
 
         end() {
             this.outer.end()
         }
 
-        testMakeNoChangesIfAllOk() {
-            this.helper.rememberValues(this.target)
+        shouldMakeNoChangesIfAllOk() {
+            this.helper.givenCorrectDesktopCount()
+
             this.helper.expectNoChanges()
 
-            this.target.resync()
-
-            this.helper.assertSameValues(this.target)
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
         }
 
-        testAddDesktopsIfNeeded() {
+        shouldAddDesktopsIfNeeded() {
             nDiff := 5
-            this.helper.givenFewerDesktopsPresent(nDiff)
+            this.helper.givenMoreDesktopsWanted(nDiff)
 
             this.helper.expectAddDesktops(nDiff)
 
-            this.target.resync()
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
         }
 
-        testRemoveDesktopIfNeeded() {
+        shouldRemoveDesktopsIfNeeded() {
             nDiff := 5
-            this.helper.givenFewerDesktopsWanted(nDiff)
+            this.helper.givenMoreDesktopsPresent(nDiff)
 
             this.helper.expectRemoveDesktops(nDiff)
 
-            this.target.resync()
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
+        }
+
+        ;; Test included for explicitness, even though covered
+        ;; by other tests/helpers.
+        shouldSyncValues() {
+            this.hotMocks.expect(this.desktopMapper, "syncDesktopCount")
+                         .andReturn(this.nDesktops)
+            this.hotMocks.expect(this.desktopMapper, "syncCurrentDesktop")
+                         .andReturn(this.desktop)
+
+            target := new DesktopPicker(this.dwm
+                , this.desktopMapper, this.tooltip)
         }
     }
+
 }
 
 class Helper extends CarefulObject {
@@ -542,12 +569,14 @@ class Helper extends CarefulObject {
 
     givenFewerDesktopsPresent(nDiff) {
         ;; We have nDiff fewer than we want.
+        this.tester.dwm.nDesktops := this.tester.nDesktops
         this.tester.hotMocks.allow(this.tester.desktopMapper
             , "syncDesktopCount").andReturn(this.tester.nDesktops - nDiff)
     }
 
     givenMoreDesktopsPresent(nDiff) {
         ;; We have nDiff more than we want.
+        this.tester.dwm.nDesktops := this.tester.nDesktops
         this.tester.hotMocks.allow(this.tester.desktopMapper
             , "syncDesktopCount").andReturn(this.tester.nDesktops + nDiff)
     }
@@ -555,11 +584,37 @@ class Helper extends CarefulObject {
     givenFewerDesktopsWanted(nDiff) {
         ;; We want nDiff fewer than we have.
         this.tester.dwm.nDesktops := this.tester.nDesktops - nDiff
+        this.tester.hotMocks.allow(this.tester.desktopMapper
+            , "syncDesktopCount").andReturn(this.tester.nDesktops)
     }
 
     givenMoreDesktopsWanted(nDiff) {
         ;; We want nDiff more than we have.
         this.tester.dwm.nDesktops := this.tester.nDesktops + nDiff
+        this.tester.hotMocks.allow(this.tester.desktopMapper
+            , "syncDesktopCount").andReturn(this.tester.nDesktops)
+    }
+
+    givenCorrectDesktopCount() {
+        ;; We want nDiff more than we have.
+        this.tester.dwm.nDesktops := this.tester.nDesktops
+        this.tester.hotMocks.allow(this.tester.desktopMapper
+            , "syncDesktopCount").andReturn(this.tester.nDesktops)
+    }
+
+    givenAConstructedTarget() {
+        this.tester.hotMocks.allow(this.tester.desktopMapper
+            , "syncDesktopCount").andReturn(this.tester.nDesktops)
+        this.tester.hotMocks.allow(this.tester.desktopMapper
+            , "syncCurrentDesktop").andReturn(this.tester.desktop)
+
+        this.tester.target := new DesktopPicker(this.tester.dwm
+            , this.tester.desktopMapper, this.tester.tooltip)
+
+        this.tester.hotMocks.disallow(this.tester.desktopMapper
+            , "syncDesktopCount")
+        this.tester.hotMocks.disallow(this.tester.desktopMapper
+            , "syncCurrentDesktop")
     }
 
     expectNoChanges() {

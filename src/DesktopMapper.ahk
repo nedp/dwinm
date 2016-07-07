@@ -13,6 +13,7 @@ class DesktopMapper extends CarefulObject {
         this.virtualDesktopManager := virtualDesktopManager
         this._setupGui()
         this.resync()
+        this.syncCurrentDesktop()
     }
 
     /*
@@ -33,7 +34,6 @@ class DesktopMapper extends CarefulObject {
             this.desktopIds.push(this._idFromReg(desktopId))
             start += REG_ID_LENGTH
         }
-        this.currentId := this._currentDesktopId()
     }
 
     /*
@@ -47,13 +47,18 @@ class DesktopMapper extends CarefulObject {
     }
 
     /*
-     * Report the true current desktop by finding the desktop of a
-     * known window.
+     * Report the true current desktop by the fastest method which
+     * is currently reliable.
+     *
+     * If a fast but specialised desktop check is available, it will be
+     * used, otherwise a slower but more general check is used.
      *
      * Costly.
      */
     syncCurrentDesktop() {
-        this.currentId := this._currentDesktopId()
+        hwnd := this._fastHwnd()
+        this.currentId := hwnd ? this._fastDesktopId(hwnd)
+                        : this._fallbackDesktopId()
         return this._indexOfId(this.currentId)
     }
 
@@ -68,6 +73,11 @@ class DesktopMapper extends CarefulObject {
      * Cheap.
      */
     fastCurrentDesktop() {
+        hwnd := this._fastHwnd()
+        if (hwnd) {
+            this.currendId := this._fastDesktopId(hwnd)
+        }
+        Logger.trace(this.__class "#fastCurrentDesktop: id=" this.currentId)
         return this._indexOfId(this.currentId)
     }
 
@@ -75,47 +85,54 @@ class DesktopMapper extends CarefulObject {
      * Send the appropriate keypresses required to go to the
      * specified desktop.
      *
-     * Costly.
+     * Cheap.
      */
     goToDesktop(newDesktop) {
         Logger.trace(this.__class "#goToDesktop: ENTRY")
-        difference := newDesktop - this.currentDesktop()
-        while (difference != 0 && A_Index <= this.MAX_RETRIES) {
-            if (difference > 0) {
-                quickSend("^#{Right " difference "}")
+        Logger.trace("newDesktop=" newDesktop)
+
+        desktop := this.fastCurrentDesktop()
+        Logger.trace("initial estimated desktop=" desktop)
+        while (desktop != newDesktop && A_Index <= this.MAX_RETRIES) {
+            if (newDesktop > desktop) {
+                quickSend("^#{Right " (newDesktop - desktop) "}")
             } else {
-                quickSend("^#{Left " (-difference) "}")
+                quickSend("^#{Left " (desktop - newDesktop) "}")
             }
-            difference := newDesktop - this.currentDesktop()
+            this.currentId := this.desktopIds[newDesktop]
+            desktop := this.fastCurrentDesktop()
+            Logger.trace("estimated desktop=" desktop)
         }
         Logger.trace(this.__class "#goToDesktop: EXIT")
-        return this.fastCurrentDesktop()
+        return this._indexOfId(this.currentId)
     }
 
-    _currentDesktopId() {
-        Logger.trace(this.__class "#_currentDesktopId: ENTRY")
+    _fastHwnd() {
         hwnd := WinExist("A")
+
+        if (!hwnd) {
+            return false
+        }
+
         class := ""
-        guid := ""
         WinGetClass class, ahk_id %hwnd%
-
         Logger.trace("hwnd = " hwnd ", class = " class)
-        if (hwnd && RegExMatch(class, this.BAD_CLASS_REGEX) <= 0) {
-            guid := this.virtualDesktopManager.getDesktopGuid(hwnd)
-        }
+        return RegExMatch(class, this.BAD_CLASS_REGEX) ? false : hwnd
+    }
 
+    _fastDesktopId(hwnd) {
+        Logger.trace(this.__class "#_fastDesktopId: ENTRY")
+        guid := this.virtualDesktopManager.getDesktopGuid(hwnd)
         if (!guid || guid == this.NULL_GUID) {
-            if (hwnd && RegExMatch(class, this.BAD_CLASS_REGEX) <= 0) {
-                Logger.warning("Bad GUID from good HWND")
-            }
-            Logger.trace("guid = " guid ", falling back")
-            guid := this._fallbackCurrentDesktopGuid()
+            Logger.warning("Bad GUID: " guid)
         }
-        Logger.trace(this.__class "#_currentDesktopId: EXIT")
+        Logger.trace(this.__class "#_fastDesktopId: EXIT")
         return this._idFromGuid(guid)
     }
 
-    _fallbackCurrentDesktopGuid() {
+    _fallbackDesktopId() {
+        Logger.trace(this.__class "#_fallbackDesktopId: ENTRY")
+
         this.resync()
         hwnd := this.hwnd
         Gui %hwnd%:show, NA ;show but don't activate
@@ -123,16 +140,16 @@ class DesktopMapper extends CarefulObject {
 
         guid := this.virtualDesktopManager.getDesktopGuid(hwnd)
 
-        Gui %hwnd%:hide
-
         ;; If you don't wait until it closes (and sleep a little)
         ;; then the desktop the gui is on can get focus
+        Gui %hwnd%:hide
         WinWaitClose Ahk_id %hwnd%
 
-        Logger.debug(this.__class "_fallbackCurretnDesktopGuid: hwnd = "
+        Logger.debug(this.__class "_fallbackDesktopId: hwnd = "
                      . hwnd " -- guid = " guid)
+        Logger.trace(this.__class "#_fallbackDesktopId: EXIT")
 
-        return guid
+        return this._idFromGuid(guid)
     }
 
     /*

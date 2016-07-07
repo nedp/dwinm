@@ -22,7 +22,7 @@ class DesktopPicker extends CarefulObject {
         Critical
 
         this.nDesktops := this._resetDesktopCount()
-        this.desktop := desktopMapper.currentDesktop()
+        this.desktop := this.desktopMapper.syncCurrentDesktop()
         Logger.debug("DesktopPicker#__new: this.desktop = " this.desktop)
         this.recentDesktop := 1
 
@@ -144,7 +144,7 @@ class DesktopPicker extends CarefulObject {
         }
 
         ;; Go to the last desktop so we add/remove at the right place.
-        actualDesktop := this.desktopMapper.currentDesktop()
+        actualDesktop := this.desktopMapper.syncCurrentDesktop()
         slowSend("#^{Right " (nActualDesktops - actualDesktop + BUFFER) "}")
         sleep(this.RESYNC_DELAY)
 
@@ -168,7 +168,7 @@ class DesktopPicker extends CarefulObject {
         Logger.trace(this.__class "#_resetCurrentDesktop: ENTRY")
         static BUFFER := 2
 
-        actualDesktop := this.desktopMapper.currentDesktop()
+        actualDesktop := this.desktopMapper.syncCurrentDesktop()
 
         Logger.trace("actualDesktop = " actualDesktop)
 
@@ -180,7 +180,7 @@ class DesktopPicker extends CarefulObject {
             slowSend("^#{Right " (this.desktop - 1) "}")
             sleep(this.RESYNC_DELAY)
 
-            actualDesktop := this.desktopMapper.currentDesktop()
+            actualDesktop := this.desktopMapper.syncCurrentDesktop()
             Logger.trace("actualDesktop = " actualDesktop)
         }
         Logger.trace(this.__class "#_resetCurrentDesktop: EXIT")
