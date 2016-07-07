@@ -19,7 +19,7 @@ CoordMode ToolTip, Screen
 SetTitleMatchMode RegEx
 SendMode InputThenPlay
 
-Logger.setLevel(Logger.Levels.TRACE)
+Logger.setLevel(Logger.Levels.WARNING)
 Logger.tooltip := DWinM.LOGGER_TOOLTIP
 DWM := new DWinM()
 

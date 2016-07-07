@@ -4,14 +4,14 @@
 #Include %A_ScriptDir%\mocks.ahk
 #Include %A_ScriptDir%\globals.ahk
 
-#Include %A_ScriptDir%\..\src\DesktopChanger.ahk
+#Include %A_ScriptDir%\..\src\DesktopPicker.ahk
 
 #Warn
 
-ExitApp, % Yunit.Use(YunitStdOut).Test(DesktopChangerTest).didFail
+ExitApp, % Yunit.Use(YunitStdOut).Test(DesktopPickerTest).didFail
 return
 
-class DesktopChangerTest {
+class DesktopPickerTest {
 
     begin(tester := "") {
         this.tester := tester
@@ -107,7 +107,7 @@ class DesktopChangerTest {
     class Constructor {
 
         __new() {
-            this.outer := new DesktopChangerTest()
+            this.outer := new DesktopPickerTest()
         }
 
         begin() {
@@ -119,7 +119,7 @@ class DesktopChangerTest {
         }
 
         testInjectProperties() {
-            target := new DesktopChanger(this.dwm
+            target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
 
             Yunit.assertEq(target.dwm, this.dwm)
@@ -128,7 +128,7 @@ class DesktopChangerTest {
         }
 
         testDeriveProperties() {
-            target := new DesktopChanger(this.dwm
+            target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
 
             Yunit.assertEq(target.desktop, this.desktop)
@@ -138,7 +138,7 @@ class DesktopChangerTest {
         testMakeNoChangesIfAllOk() {
             this.outer.expectNoChanges()
 
-            target := new DesktopChanger(this.dwm
+            target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
         }
 
@@ -148,7 +148,7 @@ class DesktopChangerTest {
 
             this.outer.expectAddDesktops(nDiff)
 
-            target := new DesktopChanger(this.dwm
+            target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
         }
 
@@ -158,7 +158,7 @@ class DesktopChangerTest {
 
             this.outer.expectRemoveDesktops(nDiff)
 
-            target := new DesktopChanger(this.dwm
+            target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
         }
     }
@@ -166,13 +166,13 @@ class DesktopChangerTest {
     class Resync {
 
         __new() {
-            this.outer := new DesktopChangerTest()
+            this.outer := new DesktopPickerTest()
         }
 
         begin() {
             this.outer.begin(this)
 
-            this.target := new DesktopChanger(this.dwm
+            this.target := new DesktopPicker(this.dwm
                 , this.desktopMapper, this.tooltip)
         }
 

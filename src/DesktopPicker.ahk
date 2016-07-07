@@ -1,4 +1,4 @@
-class DesktopChanger extends CarefulObject {
+class DesktopPicker extends CarefulObject {
     static MAX_RETRIES := 3 ;; Maximum number of attempts to resync.
     static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
 
@@ -23,7 +23,7 @@ class DesktopChanger extends CarefulObject {
 
         this.nDesktops := this._resetDesktopCount()
         this.desktop := desktopMapper.currentDesktop()
-        Logger.debug("DesktopChanger#__new: this.desktop = " this.desktop)
+        Logger.debug("DesktopPicker#__new: this.desktop = " this.desktop)
         this.recentDesktop := 1
 
         this._displayDesktop()
@@ -31,8 +31,8 @@ class DesktopChanger extends CarefulObject {
         Critical %wasCritical%
     }
 
-    swapDesktops(keyCombo := "") {
-        Logger.trace("DesktopChanger#swapDesktops: entry")
+    swapDesktops() {
+        Logger.trace("DesktopPicker#swapDesktops: entry")
         wasCritical := A_IsCritical
         Critical
 
@@ -43,10 +43,10 @@ class DesktopChanger extends CarefulObject {
         this._displayDesktop()
 
         Critical %wasCritical%
-        Logger.trace("DesktopChanger#swapDesktops: exit")
+        Logger.trace("DesktopPicker#swapDesktops: exit")
     }
 
-    resync(keyCombo := "") {
+    resync() {
         wasCritical := A_IsCritical
         Critical
 
@@ -159,7 +159,7 @@ class DesktopChanger extends CarefulObject {
         ;; Go to the last desktop so we add/remove at the right place.
         actualDesktop := this.desktopMapper.currentDesktop()
         slowSend("#^{Right " (nActualDesktops - actualDesktop + BUFFER) "}")
-        sleep(DesktopChanger.RESYNC_DELAY)
+        sleep(this.RESYNC_DELAY)
 
         while (nDesktopsToMake != 0 && A_Index < this.MAX_RETRIES) {
             this._displayTooltip("Fixing wrong desktop count (" nActualDesktops ")")
@@ -168,7 +168,7 @@ class DesktopChanger extends CarefulObject {
             keys := nDesktopsToMake > 0 ? "#^{d " nDesktopsToMake "}"
                                         : "#^{F4 " (-nDesktopsToMake) "}"
             slowSend(keys)
-            sleep(DesktopChanger.RESYNC_DELAY)
+            sleep(this.RESYNC_DELAY)
 
             nActualDesktops := this.desktopMapper.syncDesktopCount()
             nDesktopsToMake := this.dwm.nDesktops - nActualDesktops
