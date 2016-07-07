@@ -51,7 +51,14 @@ class Yunit {
                 continue
             }
             ;; Ignore case
-            if (SubStr(key, 1, 4) != "test") {
+            name := ""
+            if (SubStr(key, 1, 4) = "test") {
+                name := SubStr(key, 5)
+            }
+            if (SubStr(key, 1, 6) = "should") {
+                name := SubStr(key, 7)
+            }
+            if (!name) {
                 continue
             }
             result := 0
@@ -69,7 +76,7 @@ class Yunit {
                 this.didFail := true
             }
             results[key] := result
-            this.update(cls.__class, SubStr(key, 5), result)
+            this.update(cls.__class, name, result)
             ObjRemove(environment, "ExpectedException")
         }
     }
