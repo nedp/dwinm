@@ -314,11 +314,18 @@ DWM.hotkeyManager
 #IfWinActive ahk_exe chrome.exe|firefox.exe
     ^w::Send +^{Left}^x
 
-;; Enter COMMAND mode from specific applications.
+;; Enter modes from specific applications.
 #IfWinActive ahk_exe firefox.exe
     ~o::
         if (DWM.hasMode(DWM.Modes.DESKTOP)) {
             DWM.setMode(DWM.Modes.COMMAND)
+        }
+    return
+
+    ::gH::
+        Send gH
+        if (DWM.hasMode(DWM.Modes.DESKTOP)) {
+            DWM.setMode(DWM.Modes.SELECT)
         }
     return
 #IfWinActive ahk_exe explorer.exe|firefox.exe|chrome.exe
