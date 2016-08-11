@@ -23,10 +23,12 @@ class DesktopMapper extends CarefulObject {
      * Costly.
      */
     resync() {
+        Logger.debug(this.__class "#resync: ENTRY")
         static REG_ID_LENGTH := 32
         RegRead desktopList, HKEY_CURRENT_USER, % this.PATH, VirtualDesktopIDs
 
         max := StrLen(desktopList)
+        Logger.trace(this.__class "#resync: registry length = " max)
         start := 1
         this.desktopIds := []
         while (start < max) {
@@ -34,6 +36,7 @@ class DesktopMapper extends CarefulObject {
             this.desktopIds.push(this._idFromReg(desktopId))
             start += REG_ID_LENGTH
         }
+        Logger.debug(this.__class "#resync: EXIT")
     }
 
     /*
@@ -43,7 +46,8 @@ class DesktopMapper extends CarefulObject {
      */
     syncDesktopCount() {
         this.resync()
-        return this.desktopIds.maxIndex()
+        maxIndex := this.desktopIds.maxIndex()
+        return maxIndex > 0 ? maxIndex : 1
     }
 
     /*
@@ -168,11 +172,15 @@ class DesktopMapper extends CarefulObject {
     }
 
     _indexOfId(guid) {
+        Logger.trace(this.__class "#_indexOfId: ENTRY")
         for i, id in this.desktopIds {
+            Logger.trace(this.__class "_indexOfId: id = " id)
             if (id == guid) {
+                Logger.trace(this.__class "#_indexOfId: EXIT")
                 return i
             }
         }
+        Logger.trace(this.__class "#_indexOfId: EXIT")
         return -1
     }
 

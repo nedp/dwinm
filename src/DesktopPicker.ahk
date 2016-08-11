@@ -139,6 +139,8 @@ class DesktopPicker extends CarefulObject {
 
         nActualDesktops := this.desktopMapper.syncDesktopCount()
         nDesktopsToMake := this.dwm.nDesktops - nActualDesktops
+        Logger.trace(this.__class "#_resetDesktopCount: nActualDesktops = "
+                                  . nActualDesktops)
         if (nDesktopsToMake == 0) {
             return nActualDesktops
         }
