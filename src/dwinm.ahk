@@ -311,7 +311,7 @@ DWM.hotkeyManager
     ^!Escape::DWM.setMode(DWM.Modes.DESKTOP)
 
 ;; Avoid nuking the window.
-#IfWinActive ahk_exe chrome.exe|firefox.exe
+#IfWinActive ahk_exe chrome.exe
     ^w::Send +^{Left}^x
 
 ;; Enter modes from specific applications.
