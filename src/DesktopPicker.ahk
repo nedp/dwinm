@@ -128,7 +128,7 @@ class DesktopPicker extends CarefulObject {
             message .= (A_index == this.desktop)       ? "[" A_Index "]"
                      : (A_Index == this.otherDesktop)  ? "." A_Index "."
                      : (A_Index == this.recentDesktop) ? "'" A_Index "'"
-                                                       : " " A_Index " "
+                                                       : ""
         }
         this._displayTooltip(message)
     }
