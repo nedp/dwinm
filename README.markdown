@@ -10,15 +10,17 @@ Most recent:
 `master`:
 [![Build status](https://ci.appveyor.com/api/projects/status/xb5mv5qimhl47bfc/branch/master?svg=true)](https://ci.appveyor.com/project/nedp/dwinm/branch/master)
 
-## Philosophy
+## Status
 
-dwinm is based on three core ideas:
+This was a fun project to learn a bit of ahk scripting, a little about
+writing testing/mocking library code, and getting some practice with appveyor.
 
-1. Window managers need to be as lightweight as possible to
-   achieve the best possible performance and responsiveness.
-2. Simpler software is better, it's easier to maintain.
-3. (General keybinds + window management) is a specialised enough
-   concern for a single program.
+After having no major problems for a while with the program as it is, I have no
+intentions of further development.
+
+It's not really in a state where it can be merged
+[back upstream](https://github.com/jpginc/windows10DesktopManager),
+but anyone's free to take whatever code they want from this.
 
 ## Features
 
