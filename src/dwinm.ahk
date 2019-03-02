@@ -312,18 +312,11 @@ DWM.hotkeyManager
     ^!Escape::DWM.setMode(DWM.Modes.DESKTOP)
 
 ;; Avoid nuking the window.
-#IfWinActive ahk_exe chrome.exe
+#IfWinActive ahk_exe chrome.exe|firefox.exe
     ^w::Send +^{Left}^x
 
 ;; Enter modes from specific applications.
-#IfWinActive ahk_exe firefox.exe
-    ::gH::
-        Send gH
-        if (DWM.hasMode(DWM.Modes.DESKTOP)) {
-            DWM.setMode(DWM.Modes.SELECT)
-        }
-    return
-#IfWinActive ahk_exe explorer.exe|chrome.exe
+#IfWinActive ahk_exe explorer.exe|chrome.exe|firefox.exe
     ~^l::
         if (DWM.hasMode(DWM.Modes.DESKTOP)) {
             DWM.setMode(DWM.Modes.COMMAND)
