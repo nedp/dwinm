@@ -297,8 +297,8 @@ DWM.hotkeyManager
 
     ^y::^v
 
-    ~*Enter::
-    ~*Escape::
+    *Enter::
+    *Escape::
         DWM.setMode(DWM.MODES.DESKTOP)
     return
 
@@ -317,9 +317,9 @@ DWM.hotkeyManager
 
 ;; Enter modes from specific applications.
 #IfWinActive ahk_exe firefox.exe
-    l::
-    +l::
-    w::
+    ~L::
+    ~+l::
+    ~W::
         if (DWM.hasMode(DWM.Modes.DESKTOP)) {
             DWM.setMode(DWM.Modes.COMMAND)
         }
