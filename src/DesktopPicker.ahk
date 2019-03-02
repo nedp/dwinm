@@ -1,4 +1,5 @@
 class DesktopPicker extends CarefulObject {
+    static TOOLTIP_TIMEOUT := 30000
     static MAX_RETRIES := 3 ;; Maximum number of attempts to resync.
     static RESYNC_DELAY := 100 ;; Delay between steps of a resync.
 
@@ -122,6 +123,7 @@ class DesktopPicker extends CarefulObject {
         this._displayDesktop()
     }
 
+    clear := ObjBindMethod(this, "_clearTooltip")
     _displayDesktop() {
         message := ""
         loop % this.nDesktops {
@@ -131,6 +133,8 @@ class DesktopPicker extends CarefulObject {
                                                        : ""
         }
         this._displayTooltip(message)
+        clear := this.clear
+        SetTimer %clear%, % -this.TOOLTIP_TIMEOUT
     }
 
     ;; Ensure that the number of desktops matches `this.nDesktops`.
@@ -191,5 +195,14 @@ class DesktopPicker extends CarefulObject {
 
     _displayTooltip(message) {
         ToolTip %message%, this.tooltip.x, this.tooltip.y, this.tooltip.id
+    }
+
+    _clearTooltip() {
+        wasCritical := A_IsCritical
+        Critical
+
+        ToolTip, , , , this.tooltip.id
+
+        Critical %wasCritical%
     }
 }
