@@ -23,6 +23,7 @@ Logger.setLevel(Logger.Levels.WARNING)
 Logger.tooltip := DWinM.LOGGER_TOOLTIP
 DWM := new DWinM()
 
+
 DWM.hotkeyManager
     .swapDesktops("!Tab")
     .pickDesktop("!")
@@ -57,10 +58,10 @@ DWM.hotkeyManager
     !+l::SendEvent #{Right}
 
     ;; Close window.
-    !w::Send !{F4}
+    !+w::Send !{F4}
 
     ;; Lock the screen.
-    !^l::Run rundll32.exe user32.dll LockWorkStation, %A_Windir%\System32
+    !q::Run rundll32.exe user32.dll LockWorkStation, %A_Windir%\System32
 
     ;; Open the start menu.
     !Space::Send ^{Escape}
@@ -430,3 +431,21 @@ class DWinM extends CarefulObject {
         Critical %wasCritical%
     }
 }
+
+; CapsLock to LAlt + Escape
+SetCapsLockState Off
+*CapsLock::
+	capsLockKey=
+	Input, capsLockKey, B C L1 T1, {Esc}
+	if (ErrorLevel = "Max")
+		SendInput {LAlt Down}%capsLockKey%
+	KeyWait, CapsLock
+	Return
+CapsLock up::
+	If capsLockKey
+		Send {LAlt Up}
+	else
+		if (A_TimeSincePriorHotkey < 1000)
+			SendEvent, {Esc 2}
+	Return
+
