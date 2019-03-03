@@ -80,6 +80,9 @@ DWM.hotkeyManager
         }
     return
 
+    ;; Notifications
+    !^n::Send #a
+
 #If DWM.hasMode(DWM.Modes.NORMAL)
     ;; Change modes.
     *Escape::DWM.setMode(DWM.Modes.DESKTOP)
