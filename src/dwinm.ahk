@@ -300,9 +300,24 @@ DWM.hotkeyManager
 
     ^y::^v
 
-    *Enter::
-    *Escape::
+    ~*Enter::
+    ~*Escape::
         DWM.setMode(DWM.MODES.DESKTOP)
+    return
+
+    *CapsLock::
+        capsLockKey=
+        Input, capsLockKey, B C L1 T1, {Esc}
+        if (ErrorLevel = "Max")
+            SendInput {LAlt Down}%capsLockKey%
+        KeyWait, CapsLock
+    return
+    CapsLock up::
+        If capsLockKey
+                Send {LAlt Up}
+        else if (A_TimeSincePriorHotkey < 1000)
+                SendEvent, {Esc 2}
+                DWM.setMode(DWM.MODES.DESKTOP)
     return
 
     ^c::
@@ -313,7 +328,6 @@ DWM.hotkeyManager
 #If DWM.hasMode(DWM.Modes.PASSTHROUGH)
     ;; Change modes.
     ^!Escape::DWM.setMode(DWM.Modes.DESKTOP)
-
 ;; Avoid nuking the window.
 #IfWinActive ahk_exe chrome.exe
     ^w::Send +^{Left}^x
