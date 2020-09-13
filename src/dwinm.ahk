@@ -25,18 +25,18 @@ DWM := new DWinM()
 
 
 DWM.hotkeyManager
-    .swapDesktops("!Tab")
-    .pickDesktop("!")
-    .swapAndPickDesktop("^!")
-    .moveWindowToDesktop("!+")
-    .resync("!0")
+    .swapDesktops("#Tab")
+    .pickDesktop("#")
+    .swapAndPickDesktop("!#")
+    .moveWindowToDesktop("#+")
+    .resync("#0")
 
 #If DWM.hasMode(DWM.Modes.DESKTOP)
     ;; Change modes.
-    !s::DWM.setMode(DWM.Modes.SELECT)
-    !Escape::DWM.setMode(DWM.Modes.NORMAL)
-    !+;::DWM.setMode(DWM.Modes.COMMAND)
-    !i::DWM.setMode(DWM.Modes.PASSTHROUGH)
+    #s::DWM.setMode(DWM.Modes.SELECT)
+    #Escape::DWM.setMode(DWM.Modes.NORMAL)
+    #+;::DWM.setMode(DWM.Modes.COMMAND)
+    #i::DWM.setMode(DWM.Modes.PASSTHROUGH)
 
     ;; Browse windows.
     ^!Tab::
@@ -48,26 +48,20 @@ DWM.hotkeyManager
     ~#Tab::DWM.setMode(DWM.Modes.SELECT)
 
     ;; Cycle windows.
-    !j::Send !{Esc}
-    !k::Send !+{Esc}
-
-    ;; Use Windows' pauper tiling.
-    !+h::SendEvent #{Left}
-    !+j::SendEvent #{Down}
-    !+k::SendEvent #{Up}
-    !+l::SendEvent #{Right}
+    #j::Send !{Esc}
+    #k::Send !+{Esc}
 
     ;; Close window.
-    !+w::Send !{F4}
+    #+w::Send !{F4}
 
     ;; Lock the screen.
-    !q::Run rundll32.exe user32.dll LockWorkStation, %A_Windir%\System32
+    #q::Run rundll32.exe user32.dll LockWorkStation, %A_Windir%\System32
 
     ;; Open the start menu.
-    !Space::Send ^{Escape}
+    #Space::Send ^{Escape}
 
     ;; Reload dwinm.
-    !^q::
+    #!q::
         Suspend
         Critical
         if (A_IsCompiled) {
@@ -81,7 +75,7 @@ DWM.hotkeyManager
     return
 
     ;; Notifications
-    !^n::Send #a
+    #!n::Send #a
 
 #If DWM.hasMode(DWM.Modes.NORMAL)
     ;; Change modes.
@@ -327,7 +321,7 @@ DWM.hotkeyManager
 
 #If DWM.hasMode(DWM.Modes.PASSTHROUGH)
     ;; Change modes.
-    ^!Escape::DWM.setMode(DWM.Modes.DESKTOP)
+    ^#Escape::DWM.setMode(DWM.Modes.DESKTOP)
 ;; Avoid nuking the window.
 #IfWinActive ahk_exe chrome.exe
     ^w::Send +^{Left}^x
@@ -397,14 +391,15 @@ class DWinM extends CarefulObject {
         this.desktopPicker.resync()
         this.windowMover.resync()
 
-        if (!wasSuspended) {
-            Suspend Off
-        }
+        Suspend %wasSuspended%
         Critical %wasCritical%
     }
 
     clear := ObjBindMethod(this, "_clearTooltip")
     setMode(mode) {
+        if (mode == this.Modes.COMMAND) {
+            return
+        }
         wasCritical := A_IsCritical
         Critical
 
@@ -452,19 +447,19 @@ class DWinM extends CarefulObject {
 }
 
 ; CapsLock to LAlt + Escape
-SetCapsLockState Off
-*CapsLock::
-	capsLockKey=
-	Input, capsLockKey, B C L1 T1, {Esc}
-	if (ErrorLevel = "Max")
-		SendInput {LAlt Down}%capsLockKey%
-	KeyWait, CapsLock
-	Return
-CapsLock up::
-	If capsLockKey
-		Send {LAlt Up}
-	else
-		if (A_TimeSincePriorHotkey < 1000)
-			SendEvent, {Esc 2}
-	Return
+;SetCapsLockState Off
+;*CapsLock::
+;	capsLockKey=
+;	Input, capsLockKey, B C L1 T1, {Esc}
+;	if (ErrorLevel = "Max")
+;		SendInput {LAlt Down}%capsLockKey%
+;	KeyWait, CapsLock
+;	Return
+;CapsLock up::
+;	If capsLockKey
+;		Send {LAlt Up}
+;	else
+;		if (A_TimeSincePriorHotkey < 1000)
+;			SendEvent, {Esc 2}
+;	Return
 
